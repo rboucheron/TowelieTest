@@ -1,0 +1,18 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100" {{ attributes }}>
+
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Towelie Test</a>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            {% if user is null %}
+                <a class="btn btn-outline-success" href="#">Connection</a>
+            {% else %}
+                <span class="navbar-text me-2">
+                        {{ user.name }}
+                    </span>
+                <a class="btn btn-outline-danger" href="{{ path('app_logout') }}">Logout</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+

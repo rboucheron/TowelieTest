@@ -1,0 +1,11 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+github_connect:
+    path: /connect/github
+    controller: App\Controller\SecurityController::connect
+
+github_check:
+    path: /connect/github/check
