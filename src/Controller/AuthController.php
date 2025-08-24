@@ -36,19 +36,21 @@ final class AuthController extends AbstractController
     public function connectCheck(): Response
     {
         $client = $this->clientRegistry->getClient('github');
-        $user = $client->fetchUser();
+        $githubUser = $client->fetchUser();
 
-        if (!$user) {
+        if (!$githubUser) {
             throw new \RuntimeException('User not found');
         }
 
-        if (!$this->userRepositoryAdapteur->findByEmail($user->getEmail())) {
-            $this->userRepositoryAdapteur->save($user);
+        $user = $this->userRepositoryAdapteur->findByEmail($githubUser->getEmail());
+
+        if (!$user) {
+            $user = $this->userRepositoryAdapteur->save($githubUser);
         }
 
         $token = $this->jwtManager->create($user);
 
-        $response = $this->redirectToRoute('homepage');
+        $response = $this->redirectToRoute('');
         $response->headers->setCookie(
             new Cookie(
                 'jwt_token',

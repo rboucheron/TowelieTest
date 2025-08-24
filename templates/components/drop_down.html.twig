@@ -1,0 +1,11 @@
+<div class="dropdown" data-bs-theme="light" {{ attributes }} >
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButtonLight" data-bs-toggle="dropdown" aria-expanded="false">
+        Default dropdown
+    </button>
+
+    {% if open == true  %}
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButtonLight">
+            <li><a class="dropdown-item active" href="#">Action</a></li>
+        </ul>
+    {% endif %}
+</div>

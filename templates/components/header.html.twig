@@ -1,16 +1,16 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100" {{ attributes }}>
 
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Towelie Test</a>
+        <div class="navbar-brand" >Towelie Test</div>
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
             {% if user is null %}
-                <a class="btn btn-outline-success" href="#">Connection</a>
+                <a class="btn btn-outline-success" href="{{ path('github_connect') }}">Connection</a>
             {% else %}
                 <span class="navbar-text me-2">
                         {{ user.name }}
                     </span>
-                <a class="btn btn-outline-danger" href="{{ path('app_logout') }}">Logout</a>
+                <a class="btn btn-outline-danger" >Logout</a>
             {% endif %}
         </div>
     </div>

@@ -5,7 +5,7 @@ controllers:
     type: attribute
 github_connect:
     path: /connect/github
-    controller: App\Controller\SecurityController::connect
+    controller: App\Controller\AuthController::connect
 
 github_check:
     path: /connect/github/check

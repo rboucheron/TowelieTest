@@ -2,10 +2,10 @@
 
 namespace App\Components;
 
-use App\Model\UserModel;
+use App\Persistence\Entity\User;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
-use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent('header')]
@@ -14,7 +14,12 @@ final class Header
     use DefaultActionTrait;
 
     #[LiveProp]
-    public ?UserModel $user = null;
+    public ?User $user = null;
 
-
+    public function __construct(private readonly Security $security)
+    {
+        $this->user = $this->security->getUser()
+            ? $this->security->getUser()
+            : null;
+    }
 }

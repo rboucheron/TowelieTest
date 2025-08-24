@@ -20,27 +20,23 @@ class UserRepositoryAdapteur
         $this->entityManager = $entityManager;
     }
 
-    public function findByEmail(string $email): ?UserModel
+    public function findByEmail(string $email): ?User
     {
         $userEntity = $this->userRepository->findOneBy(['email' => $email]);
         if (!$userEntity) {
             return null;
         }
 
-        return new UserModel(
-            $userEntity->getName(),
-            $userEntity->getEmail(),
-            $userEntity->getProfilePicture()
-        );
+        return $userEntity;
     }
 
-    public function save(): User
+    public function save($userModel): User
     {
         $userEntity = new User();
         $userEntity->setEmail($userModel->getEmail());
         $userEntity->setName($userModel->getName());
-        $userEntity->setProfilePicture($userModel->getProfilePicture());
-        $userEntity->setGithubId(null);
+        $userEntity->setProfilePicture($userModel->toArray()['avatar_url']);
+        $userEntity->setGithubId($userModel->getId());
 
 
         $this->entityManager->persist($userEntity);
