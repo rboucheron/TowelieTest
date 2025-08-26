@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Security\Adapter;
-use App\Security\JWTTokenManagerInterface;
 
-class JWTTokenManagerAdapter implements JWTTokenManagerInterface
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+
+class JWTTokenManagerAdapter
 {
-    private $jwtTokenManager;
+    private JWTTokenManagerInterface $jwtTokenManager;
 
-    public function __construct($jwtTokenManager)
+    public function __construct(JWTTokenManagerInterface $jwtTokenManager)
     {
         $this->jwtTokenManager = $jwtTokenManager;
     }
@@ -18,3 +19,4 @@ class JWTTokenManagerAdapter implements JWTTokenManagerInterface
     }
 
 
+}

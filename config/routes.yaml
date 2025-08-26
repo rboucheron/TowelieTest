@@ -1,11 +1,14 @@
-controllers:
+frontend_controllers:
     resource:
-        path: ../src/Controller/
-        namespace: App\Controller
+        path: ../src/Frontend/Controller/
+        namespace: App\Frontend\Controller
     type: attribute
+
+
+
 github_connect:
     path: /connect/github
-    controller: App\Controller\AuthController::connect
+    controller: App\Security\Controller\GithubAuthController::connect
 
 github_check:
     path: /connect/github/check

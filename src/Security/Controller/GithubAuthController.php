@@ -1,23 +1,27 @@
 <?php
 
-namespace App\Controller;
+namespace App\Security\Controller;
 
 use App\Persistence\Adapter\UserRepositoryAdapteur;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Cookie;
 
-final class AuthController extends AbstractController
+final class GithubAuthController extends AbstractController
 {
 
     private ClientRegistry $clientRegistry;
     private JWTTokenManagerInterface $jwtManager;
     private UserRepositoryAdapteur $userRepositoryAdapteur;
 
-    public function __construct(ClientRegistry $clientRegistry, JWTTokenManagerInterface $jwtManager, UserRepositoryAdapteur $userRepositoryAdapteur)
+    public function __construct(
+        ClientRegistry $clientRegistry,
+        JWTTokenManagerInterface $jwtManager,
+        UserRepositoryAdapteur $userRepositoryAdapteur
+    )
     {
         $this->clientRegistry = $clientRegistry;
         $this->jwtManager = $jwtManager;

@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Components;
-
+namespace App\Frontend\Components;
 
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;

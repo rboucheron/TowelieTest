@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Components;
+namespace App\Frontend\Components;
 
 use App\Persistence\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
