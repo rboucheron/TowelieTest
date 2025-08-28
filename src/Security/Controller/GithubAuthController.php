@@ -2,9 +2,8 @@
 
 namespace App\Security\Controller;
 
-use App\Persistence\Adapter\UserRepositoryAdapteur;
+use App\Security\Service\GithubAuthService;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,20 +11,16 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class GithubAuthController extends AbstractController
 {
-
+    private GithubAuthService $githubAuthService;
     private ClientRegistry $clientRegistry;
-    private JWTTokenManagerInterface $jwtManager;
-    private UserRepositoryAdapteur $userRepositoryAdapteur;
 
     public function __construct(
-        ClientRegistry $clientRegistry,
-        JWTTokenManagerInterface $jwtManager,
-        UserRepositoryAdapteur $userRepositoryAdapteur
+        ClientRegistry    $clientRegistry,
+        GithubAuthService $githubAuthService
     )
     {
         $this->clientRegistry = $clientRegistry;
-        $this->jwtManager = $jwtManager;
-        $this->userRepositoryAdapteur = $userRepositoryAdapteur;
+        $this->githubAuthService = $githubAuthService;
     }
 
 
@@ -33,11 +28,10 @@ final class GithubAuthController extends AbstractController
     public function connect()
     {
         return $this->clientRegistry->getClient('github')->redirect();
-
     }
 
     #[Route('/connect/github/check', name: 'github_connect_check')]
-    public function connectCheck(): Response
+    public function check(): Response
     {
         $client = $this->clientRegistry->getClient('github');
         $githubUser = $client->fetchUser();
@@ -46,15 +40,9 @@ final class GithubAuthController extends AbstractController
             throw new \RuntimeException('User not found');
         }
 
-        $user = $this->userRepositoryAdapteur->findByEmail($githubUser->getEmail());
+        $token = $this->githubAuthService->findOrCreatUserAndMakeToken($githubUser);
 
-        if (!$user) {
-            $user = $this->userRepositoryAdapteur->save($githubUser);
-        }
-
-        $token = $this->jwtManager->create($user);
-
-        $response = $this->redirectToRoute('');
+        $response = $this->redirectToRoute('app_test_campaign');
         $response->headers->setCookie(
             new Cookie(
                 'jwt_token',
@@ -62,7 +50,7 @@ final class GithubAuthController extends AbstractController
                 time() + (3600 * 24),
                 '/',
                 null,
-                true,
+                false,
                 true,
                 false,
                 Cookie::SAMESITE_LAX

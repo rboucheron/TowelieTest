@@ -12,3 +12,4 @@ github_connect:
 
 github_check:
     path: /connect/github/check
+    controller: App\Security\Controller\GithubAuthController::check

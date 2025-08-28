@@ -2,7 +2,7 @@
 
 namespace App\Persistence\Adapter;
 
-use App\Model\UserModel;
+
 use App\Persistence\Entity\User;
 use App\Persistence\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
