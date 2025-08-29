@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92598cf4bda48acfee62a8ee614dbc24",
+    "content-hash": "3c201ea5438071bb489f4b44702c0a69",
     "packages": [
         {
             "name": "composer/semver",
@@ -7982,16 +7982,16 @@
         },
         {
             "name": "symfony/ux-icons",
-            "version": "v2.29.2",
+            "version": "v2.30.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-icons.git",
-                "reference": "16be9eaf707d2f68216c17afdce4bb9245d4e26f"
+                "reference": "c383eca19a6925b4d758cd1892edac457921a6f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-icons/zipball/16be9eaf707d2f68216c17afdce4bb9245d4e26f",
-                "reference": "16be9eaf707d2f68216c17afdce4bb9245d4e26f",
+                "url": "https://api.github.com/repos/symfony/ux-icons/zipball/c383eca19a6925b4d758cd1892edac457921a6f6",
+                "reference": "c383eca19a6925b4d758cd1892edac457921a6f6",
                 "shasum": ""
             },
             "require": {
@@ -8051,7 +8051,7 @@
                 "twig"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-icons/tree/v2.29.2"
+                "source": "https://github.com/symfony/ux-icons/tree/v2.30.0"
             },
             "funding": [
                 {
@@ -8071,7 +8071,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-08-14T20:58:41+00:00"
+            "time": "2025-08-27T15:25:48+00:00"
         },
         {
             "name": "symfony/ux-live-component",
@@ -11334,7 +11334,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -11342,6 +11342,6 @@
         "ext-ctype": "*",
         "ext-iconv": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

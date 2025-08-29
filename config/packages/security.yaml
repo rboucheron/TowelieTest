@@ -18,6 +18,10 @@ security:
             pattern: ^/connect/github
             security: false
 
+        login:
+            pattern: ^/auth/login
+            security: false
+
 
         main:
             lazy: true
