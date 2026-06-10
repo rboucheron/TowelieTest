@@ -1,0 +1,46 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:80"
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: "1"
+            APP_SECRET: 8d4b4ef08f7f4d56b5d6e4b2f8b6a8d2
+            DATABASE_URL: postgresql://app:app@database:5432/towelie?serverVersion=16&charset=utf8
+            MAILER_DSN: null://null
+            MESSENGER_TRANSPORT_DSN: sync://
+            GITHUB_CLIENT_ID: ""
+            GITHUB_CLIENT_SECRET: ""
+            JWT_PASSPHRASE: changeit
+        volumes:
+            - ./:/app
+            - caddy_data:/data
+            - caddy_config:/config
+        depends_on:
+            database:
+                condition: service_healthy
+        tty: true
+
+    database:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_DB: towelie
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD: app
+        ports:
+            - "5432:5432"
+        volumes:
+            - database_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U app -d towelie"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    caddy_data:
+    caddy_config:
+    database_data:
