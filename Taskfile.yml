@@ -1,0 +1,6 @@
+version: "3"
+
+tasks:
+  ci:
+    cmds:
+      - cd infra/ci && go build -o ../../foliode-ci ./cmd
