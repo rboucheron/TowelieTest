@@ -1,38 +1,23 @@
 FROM oven/bun:1
 
-RUN apt-get update && apt-get install -y iputils-ping curl
-
 WORKDIR /workspace
 
-ARG NEXT_PUBLIC_API_URL
-ARG API_CLIENT_URL
+ARG API_URL
+ENV VITE_API_URL=${API_URL}
 
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-ENV API_CLIENT_URL=${API_CLIENT_URL}
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install once at the workspace root so Bun links the `ui`/`api`/`website` packages to each other.
+COPY package.json bun.lock* ./
+COPY ui/package.json ./ui/package.json
+COPY api/package.json ./api/package.json
+COPY website/package.json ./website/package.json
+RUN bun install --frozen-lockfile
 
-# =====================
-# API
-# =====================
-
-COPY api/package.json api/bun.lock* ./api/
-
-WORKDIR /workspace/api
-RUN bun install
-
-COPY api ./
-
-# =====================
-# WEBSITE
-# =====================
-
-COPY website/package.json website/bun.lock* ../website/
+COPY ui ./ui
+COPY api ./api
+COPY website ./website
 
 WORKDIR /workspace/website
-RUN bun install
-
-COPY website ./
 
 EXPOSE 3000
 
-CMD ["bun", "run", "dev"]
+CMD ["bunx", "--bun", "vite", "dev", "--port", "3000", "--host", "0.0.0.0"]

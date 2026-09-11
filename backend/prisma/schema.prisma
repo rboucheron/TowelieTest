@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GroupRole {
+  USER
+  QA
+  MAINTAINER
+  ADMIN
+}
+
+enum TestCasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugPriority {
+  MINOR
+  MAJOR
+  BLOCKING
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  isSuperAdmin Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  memberships   Membership[]
+  refreshTokens RefreshToken[]
+  bugsCreated   Bug[]          @relation("BugCreatedBy")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Group {
+  id        String   @id @default(uuid())
+  name      String
+  logo      String?
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+  products    Product[]
+  recipeBooks RecipeBook[]
+
+  @@map("groups")
+}
+
+model Membership {
+  id        String    @id @default(uuid())
+  userId    String
+  groupId   String
+  role      GroupRole @default(USER)
+  createdAt DateTime  @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@map("memberships")
+}
+
+model Product {
+  id      String @id @default(uuid())
+  groupId String
+  name    String
+
+  group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  recipeBooks     RecipeBookProduct[]
+  affectedInBugs  BugAffectedProduct[]
+
+  @@index([groupId])
+  @@map("products")
+}
+
+model RecipeBook {
+  id          String   @id @default(uuid())
+  groupId     String
+  title       String
+  description String
+  logo        String?
+  createdAt   DateTime @default(now())
+
+  group     Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  products  RecipeBookProduct[]
+  testCases TestCase[]
+  bugs      Bug[]
+
+  @@index([groupId])
+  @@map("recipe_books")
+}
+
+model RecipeBookProduct {
+  recipeBookId String
+  productId    String
+
+  recipeBook RecipeBook @relation(fields: [recipeBookId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([recipeBookId, productId])
+  @@map("recipe_book_products")
+}
+
+model TestCase {
+  id             String           @id @default(uuid())
+  recipeBookId   String
+  description    String
+  platform       String
+  steps          String
+  expectedResult String
+  priority       TestCasePriority @default(MEDIUM)
+  createdAt      DateTime         @default(now())
+
+  recipeBook RecipeBook @relation(fields: [recipeBookId], references: [id], onDelete: Cascade)
+
+  @@index([recipeBookId])
+  @@map("test_cases")
+}
+
+model Bug {
+  id                  String      @id @default(uuid())
+  recipeBookId        String
+  environment         String
+  problemDescription  String
+  expectedBehavior    String
+  observedBehavior    String
+  stepsToReproduce    String
+  evidenceAndContext  String
+  priority            BugPriority @default(MINOR)
+  createdById         String
+  createdAt           DateTime    @default(now())
+
+  recipeBook       RecipeBook           @relation(fields: [recipeBookId], references: [id], onDelete: Cascade)
+  createdBy        User                 @relation("BugCreatedBy", fields: [createdById], references: [id])
+  affectedProducts BugAffectedProduct[]
+
+  @@index([recipeBookId])
+  @@map("bugs")
+}
+
+model BugAffectedProduct {
+  bugId     String
+  productId String
+
+  bug     Bug     @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([bugId, productId])
+  @@map("bug_affected_products")
+}

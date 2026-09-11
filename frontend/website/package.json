@@ -16,13 +16,19 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "@towelie/api": "file:../api",
     "@towelie/ui": "file:../ui",
     "@tanstack/react-devtools": "latest",
+    "@tanstack/react-query": "^5.62.7",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-start": "latest",
+    "axios": "^1.15.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hook-form": "^7.54.2",
+    "@hookform/resolvers": "^3.9.1",
+    "zod": "^3.24.1",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {

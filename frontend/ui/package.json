@@ -13,17 +13,23 @@
     "shadcn:add": "bunx --bun shadcn@latest add"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cn": "^0.2.6",
     "date-fns": "^4.4.0",
     "input-otp": "^1.5.0",
     "lucide-react": "^1.37.0",
     "radix-ui": "^1.6.7",
     "react-day-picker": "^10.0.1",
-    "tailwind-merge": "^3.6.0"
+    "react-hook-form": "^7.87.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0",
     "tailwindcss": "^4.3.3"
   }
 }

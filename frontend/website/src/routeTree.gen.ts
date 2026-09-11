@@ -10,33 +10,110 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups/index'
+import { Route as AuthenticatedGroupsGroupIdIndexRouteImport } from './routes/_authenticated/groups/$groupId/index'
+import { Route as AuthenticatedGroupsGroupIdSettingsRouteImport } from './routes/_authenticated/groups/$groupId/settings'
+import { Route as AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRouteImport } from './routes/_authenticated/groups/$groupId/recipe-books/$recipeBookId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedGroupsIndexRoute =
+  AuthenticatedGroupsIndexRouteImport.update({
+    id: '/groups/',
+    path: '/groups/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdIndexRoute =
+  AuthenticatedGroupsGroupIdIndexRouteImport.update({
+    id: '/groups/$groupId/',
+    path: '/groups/$groupId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdSettingsRoute =
+  AuthenticatedGroupsGroupIdSettingsRouteImport.update({
+    id: '/groups/$groupId/settings',
+    path: '/groups/$groupId/settings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute =
+  AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRouteImport.update({
+    id: '/groups/$groupId/recipe-books/$recipeBookId',
+    path: '/groups/$groupId/recipe-books/$recipeBookId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
+  '/groups/$groupId/': typeof AuthenticatedGroupsGroupIdIndexRoute
+  '/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/groups': typeof AuthenticatedGroupsIndexRoute
+  '/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdIndexRoute
+  '/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/_authenticated/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
+  '/_authenticated/groups/$groupId/': typeof AuthenticatedGroupsGroupIdIndexRoute
+  '/_authenticated/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/groups/'
+    | '/groups/$groupId/settings'
+    | '/groups/$groupId/'
+    | '/groups/$groupId/recipe-books/$recipeBookId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/groups'
+    | '/groups/$groupId/settings'
+    | '/groups/$groupId'
+    | '/groups/$groupId/recipe-books/$recipeBookId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/groups/'
+    | '/_authenticated/groups/$groupId/settings'
+    | '/_authenticated/groups/$groupId/'
+    | '/_authenticated/groups/$groupId/recipe-books/$recipeBookId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +125,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/groups/': {
+      id: '/_authenticated/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/groups/$groupId/': {
+      id: '/_authenticated/groups/$groupId/'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId/'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/groups/$groupId/settings': {
+      id: '/_authenticated/groups/$groupId/settings'
+      path: '/groups/$groupId/settings'
+      fullPath: '/groups/$groupId/settings'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/groups/$groupId/recipe-books/$recipeBookId': {
+      id: '/_authenticated/groups/$groupId/recipe-books/$recipeBookId'
+      path: '/groups/$groupId/recipe-books/$recipeBookId'
+      fullPath: '/groups/$groupId/recipe-books/$recipeBookId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
+  AuthenticatedGroupsGroupIdSettingsRoute: typeof AuthenticatedGroupsGroupIdSettingsRoute
+  AuthenticatedGroupsGroupIdIndexRoute: typeof AuthenticatedGroupsGroupIdIndexRoute
+  AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute: typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
+  AuthenticatedGroupsGroupIdSettingsRoute:
+    AuthenticatedGroupsGroupIdSettingsRoute,
+  AuthenticatedGroupsGroupIdIndexRoute: AuthenticatedGroupsGroupIdIndexRoute,
+  AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute:
+    AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,15 +1,10 @@
-# frontend
+# TowelieTest — Frontend
 
-To install dependencies:
+Bun workspaces monorepo: `ui` (shadcn components), `api` (typed API client), `website` (TanStack Start app).
 
-```bash
-bun install
-```
-
-To run:
+See the [repo root README](../README.md) for how to run the whole application (backend + frontend + Postgres).
 
 ```bash
-bun run index.ts
+bun install         # installs and links all three workspace packages
+cd website && bun run dev
 ```
-
-This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

@@ -1,12 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Button } from '@towelie/ui'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/')({ component: App })
-
-function App() {
-  return (
-   <div>
-     <Button>Click me</Button>
-   </div>
-  )
-}
+export const Route = createFileRoute('/')({
+  beforeLoad: () => {
+    throw redirect({ to: '/groups' })
+  },
+})
