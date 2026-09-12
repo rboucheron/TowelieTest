@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/rboucheron/foliode-ci/frontend"
-	"github.com/rboucheron/foliode-ci/pipeline"
+	"github.com/rboucheron/towelie-test/frontend"
+	"github.com/rboucheron/towelie-test/pipeline"
 )
 
 func main() {
@@ -22,6 +22,9 @@ func main() {
 
 	case "frontend:install":
 		pipeline.Execute(ctx, frontend.Install(ctx))
+	
+	case "dev:setup":
+		// Add your development setup steps here
 
 	default:
 		fmt.Printf("Commande inconnue : %s\n", os.Args[1])

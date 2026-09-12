@@ -3,8 +3,8 @@ package frontend
 import (
 	"context"
 
-	"github.com/rboucheron/foliode-ci/fs"
-	"github.com/rboucheron/foliode-ci/pipeline"
+	"github.com/rboucheron/towelie-test/fs"
+	"github.com/rboucheron/towelie-test/pipeline"
 )
 
 func Release(ctx context.Context) []pipeline.Step {

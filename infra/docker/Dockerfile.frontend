@@ -5,19 +5,11 @@ WORKDIR /workspace
 ARG API_URL
 ENV VITE_API_URL=${API_URL}
 
-# Install once at the workspace root so Bun links the `ui`/`api`/`website` packages to each other.
 COPY package.json bun.lock* ./
-COPY ui/package.json ./ui/package.json
-COPY api/package.json ./api/package.json
-COPY website/package.json ./website/package.json
 RUN bun install --frozen-lockfile
 
-COPY ui ./ui
-COPY api ./api
-COPY website ./website
-
-WORKDIR /workspace/website
+COPY . .
 
 EXPOSE 3000
 
-CMD ["bunx", "--bun", "vite", "dev", "--port", "3000", "--host", "0.0.0.0"]
+CMD ["bun", "run", "dev", "--host", "0.0.0.0", "--force"]

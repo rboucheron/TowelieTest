@@ -11,6 +11,7 @@ import { errorHandler } from "@/interfaces/http/middlewares/error-handler";
 import { apiRateLimiter } from "@/interfaces/http/middlewares/rate-limiters";
 
 import { createAuthRouter } from "@/interfaces/http/controllers/auth.controller";
+import { createMeRouter } from "@/interfaces/http/controllers/me.controller";
 import { createGroupsRouter } from "@/interfaces/http/controllers/groups.controller";
 import {
   createGroupProductsRouter,
@@ -36,7 +37,16 @@ export function createApp(): Express {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ALLOW_ORIGIN,
+      origin: (requestOrigin, callback) => {
+        const allowedOrigins = new Set([
+          env.CORS_ALLOW_ORIGIN,
+          "http://localhost:3001",
+          "http://127.0.0.1:3001",
+        ]);
+        
+
+        callback(null, !requestOrigin || allowedOrigins.has(requestOrigin));
+      },
       credentials: true,
     })
   );
@@ -48,6 +58,7 @@ export function createApp(): Express {
   app.get("/health", (_req, res) => res.status(200).json({ status: "ok" }));
 
   app.use("/v1/auth", createAuthRouter(container));
+  app.use("/v1/me", createMeRouter(container));
   app.use("/v1/groups", createGroupsRouter(container));
   app.use("/v1/groups/:groupId/products", createGroupProductsRouter(container));
   app.use("/v1/products", createProductRouter(container));

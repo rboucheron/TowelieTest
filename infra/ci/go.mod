@@ -1,3 +1,3 @@
-module github.com/rboucheron/foliode-ci
+module github.com/rboucheron/towelie-test
 
 go 1.22.6
