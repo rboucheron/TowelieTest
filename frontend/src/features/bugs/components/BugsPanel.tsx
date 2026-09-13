@@ -1,5 +1,5 @@
+import { StatusBadge } from '@/components/StatusBadge'
 import {
-  Badge,
   Button,
   Table,
   TableBody,
@@ -14,17 +14,12 @@ import {
   useBugsQuery,
   useRemoveBugMutation,
 } from '@/features/bugs/hooks/use-bugs'
+import { BUG_PRIORITY_TONE } from '@/lib/status-tones'
 
 export interface BugsPanelProps {
   groupId: string
   recipeBookId: string
 }
-
-const PRIORITY_VARIANT = {
-  BLOCKING: 'destructive',
-  MAJOR: 'default',
-  MINOR: 'secondary',
-} as const
 
 export function BugsPanel({ groupId, recipeBookId }: BugsPanelProps) {
   const bugsQuery = useBugsQuery(recipeBookId)
@@ -57,9 +52,9 @@ export function BugsPanel({ groupId, recipeBookId }: BugsPanelProps) {
               </TableCell>
               <TableCell>{bug.environment}</TableCell>
               <TableCell>
-                <Badge variant={PRIORITY_VARIANT[bug.priority]}>
+                <StatusBadge tone={BUG_PRIORITY_TONE[bug.priority]}>
                   {bug.priority}
-                </Badge>
+                </StatusBadge>
               </TableCell>
               {canManage ? (
                 <TableCell>

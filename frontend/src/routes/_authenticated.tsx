@@ -1,12 +1,9 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useNavigate,
-} from '@tanstack/react-router'
+import { createFileRoute, Outlet, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { Button } from '@/components/ui'
-import { useLogoutMutation, useMeQuery } from '@/features/auth'
+import { AppSidebar } from '@/components/layout/AppSidebar'
+import { AppTopNav } from '@/components/layout/AppTopNav'
+import { SidebarInset, SidebarProvider } from '@/components/ui'
+import { useMeQuery } from '@/features/auth'
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -14,8 +11,8 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
   const meQuery = useMeQuery()
-  const logoutMutation = useLogoutMutation()
   const navigate = useNavigate()
+  const { groupId } = useParams({ strict: false })
 
   useEffect(() => {
     if (meQuery.isError) {
@@ -36,26 +33,14 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b px-6 py-3">
-        <Link to="/groups" className="font-semibold">
-          Towelie Test
-        </Link>
-        <div className="flex items-center gap-3 text-sm">
-          <span>
-            {meQuery.data.user.firstName} {meQuery.data.user.lastName}
-            {meQuery.data.user.isSuperAdmin ? ' (Super-Admin)' : ''}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => logoutMutation.mutate()}
-          >
-            Sign out
-          </Button>
-        </div>
-      </header>
-      <Outlet />
-    </div>
+    <SidebarProvider>
+      {groupId ? <AppSidebar groupId={groupId} /> : null}
+      <SidebarInset>
+        <AppTopNav />
+        <main className="flex-1 bg-background">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

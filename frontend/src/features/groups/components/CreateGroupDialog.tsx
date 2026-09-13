@@ -22,8 +22,20 @@ import {
 } from '@/components/ui'
 import { useCreateGroupMutation } from '@/features/groups/hooks/use-groups'
 
-export function CreateGroupDialog() {
-  const [open, setOpen] = useState(false)
+export interface CreateGroupDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: React.ReactNode | null
+}
+
+export function CreateGroupDialog({
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
+  trigger,
+}: CreateGroupDialogProps = {}) {
+  const [openState, setOpenState] = useState(false)
+  const open = openProp ?? openState
+  const setOpen = onOpenChangeProp ?? setOpenState
   const createGroupMutation = useCreateGroupMutation()
   const form = useForm<z.input<typeof CreateGroupInputSchema>, undefined, CreateGroupInput>({
     resolver: zodResolver(CreateGroupInputSchema),
@@ -41,9 +53,11 @@ export function CreateGroupDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>New group</Button>
-      </DialogTrigger>
+      {trigger !== null ? (
+        <DialogTrigger asChild>
+          {trigger ?? <Button>New group</Button>}
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a group</DialogTitle>

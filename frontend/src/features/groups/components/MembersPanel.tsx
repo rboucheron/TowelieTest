@@ -1,7 +1,7 @@
 import { GROUP_ROLES, ROLE_LABELS  } from '@/api'
 import type {GroupRole} from '@/api';
+import { StatusBadge } from '@/components/StatusBadge'
 import {
-  Badge,
   Button,
   Select,
   SelectContent,
@@ -22,6 +22,7 @@ import {
   useRemoveMemberMutation,
   useUpdateMemberRoleMutation,
 } from '@/features/groups/hooks/use-groups'
+import { ROLE_TONE } from '@/lib/status-tones'
 
 export interface MembersPanelProps {
   groupId: string
@@ -79,7 +80,9 @@ export function MembersPanel({ groupId }: MembersPanelProps) {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant="secondary">{ROLE_LABELS[member.role]}</Badge>
+                  <StatusBadge tone={ROLE_TONE[member.role]}>
+                    {ROLE_LABELS[member.role]}
+                  </StatusBadge>
                 )}
               </TableCell>
               {canManage ? (

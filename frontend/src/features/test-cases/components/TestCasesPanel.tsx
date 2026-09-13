@@ -1,5 +1,5 @@
+import { StatusBadge } from '@/components/StatusBadge'
 import {
-  Badge,
   Button,
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import {
   useRemoveTestCaseMutation,
   useTestCasesQuery,
 } from '@/features/test-cases/hooks/use-test-cases'
+import { TEST_CASE_PRIORITY_TONE } from '@/lib/status-tones'
 
 export interface TestCasesPanelProps {
   groupId: string
@@ -51,7 +52,9 @@ export function TestCasesPanel({ groupId, recipeBookId }: TestCasesPanelProps) {
               </TableCell>
               <TableCell>{testCase.platform}</TableCell>
               <TableCell>
-                <Badge variant="outline">{testCase.priority}</Badge>
+                <StatusBadge tone={TEST_CASE_PRIORITY_TONE[testCase.priority]}>
+                  {testCase.priority}
+                </StatusBadge>
               </TableCell>
               {canManage ? (
                 <TableCell>

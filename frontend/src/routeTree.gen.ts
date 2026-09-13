@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups/index'
 import { Route as AuthenticatedGroupsGroupIdIndexRouteImport } from './routes/_authenticated/groups/$groupId/index'
+import { Route as AuthenticatedGroupsGroupIdBugsRouteImport } from './routes/_authenticated/groups/$groupId/bugs'
 import { Route as AuthenticatedGroupsGroupIdSettingsRouteImport } from './routes/_authenticated/groups/$groupId/settings'
 import { Route as AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRouteImport } from './routes/_authenticated/groups/$groupId/recipe-books/$recipeBookId'
 
@@ -43,6 +44,12 @@ const AuthenticatedGroupsGroupIdIndexRoute =
     path: '/groups/$groupId/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedGroupsGroupIdBugsRoute =
+  AuthenticatedGroupsGroupIdBugsRouteImport.update({
+    id: '/groups/$groupId/bugs',
+    path: '/groups/$groupId/bugs',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedGroupsGroupIdSettingsRoute =
   AuthenticatedGroupsGroupIdSettingsRouteImport.update({
     id: '/groups/$groupId/settings',
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/groups/$groupId/bugs': typeof AuthenticatedGroupsGroupIdBugsRoute
   '/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
   '/groups/$groupId/': typeof AuthenticatedGroupsGroupIdIndexRoute
   '/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
@@ -68,6 +76,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
+  '/groups/$groupId/bugs': typeof AuthenticatedGroupsGroupIdBugsRoute
   '/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdIndexRoute
   '/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
@@ -78,6 +87,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/_authenticated/groups/$groupId/bugs': typeof AuthenticatedGroupsGroupIdBugsRoute
   '/_authenticated/groups/$groupId/settings': typeof AuthenticatedGroupsGroupIdSettingsRoute
   '/_authenticated/groups/$groupId/': typeof AuthenticatedGroupsGroupIdIndexRoute
   '/_authenticated/groups/$groupId/recipe-books/$recipeBookId': typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/groups/'
+    | '/groups/$groupId/bugs'
     | '/groups/$groupId/settings'
     | '/groups/$groupId/'
     | '/groups/$groupId/recipe-books/$recipeBookId'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/groups'
+    | '/groups/$groupId/bugs'
     | '/groups/$groupId/settings'
     | '/groups/$groupId'
     | '/groups/$groupId/recipe-books/$recipeBookId'
@@ -105,6 +117,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/groups/'
+    | '/_authenticated/groups/$groupId/bugs'
     | '/_authenticated/groups/$groupId/settings'
     | '/_authenticated/groups/$groupId/'
     | '/_authenticated/groups/$groupId/recipe-books/$recipeBookId'
@@ -153,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsGroupIdIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/groups/$groupId/bugs': {
+      id: '/_authenticated/groups/$groupId/bugs'
+      path: '/groups/$groupId/bugs'
+      fullPath: '/groups/$groupId/bugs'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdBugsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/groups/$groupId/settings': {
       id: '/_authenticated/groups/$groupId/settings'
       path: '/groups/$groupId/settings'
@@ -172,6 +192,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
+  AuthenticatedGroupsGroupIdBugsRoute: typeof AuthenticatedGroupsGroupIdBugsRoute
   AuthenticatedGroupsGroupIdSettingsRoute: typeof AuthenticatedGroupsGroupIdSettingsRoute
   AuthenticatedGroupsGroupIdIndexRoute: typeof AuthenticatedGroupsGroupIdIndexRoute
   AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute: typeof AuthenticatedGroupsGroupIdRecipeBooksRecipeBookIdRoute
@@ -179,6 +200,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
+  AuthenticatedGroupsGroupIdBugsRoute: AuthenticatedGroupsGroupIdBugsRoute,
   AuthenticatedGroupsGroupIdSettingsRoute:
     AuthenticatedGroupsGroupIdSettingsRoute,
   AuthenticatedGroupsGroupIdIndexRoute: AuthenticatedGroupsGroupIdIndexRoute,

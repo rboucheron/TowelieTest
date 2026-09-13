@@ -30,12 +30,20 @@ import { useCreateRecipeBookMutation } from '@/features/recipe-books/hooks/use-r
 
 export interface CreateRecipeBookDialogProps {
   groupId: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: React.ReactNode | null
 }
 
 export function CreateRecipeBookDialog({
   groupId,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
+  trigger,
 }: CreateRecipeBookDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [openState, setOpenState] = useState(false)
+  const open = openProp ?? openState
+  const setOpen = onOpenChangeProp ?? setOpenState
   const productsQuery = useProductsQuery(groupId)
   const createRecipeBookMutation = useCreateRecipeBookMutation(groupId)
   const form = useForm<z.input<typeof CreateRecipeBookInputSchema>, undefined, CreateRecipeBookInput>({
@@ -54,9 +62,11 @@ export function CreateRecipeBookDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>New recipe book</Button>
-      </DialogTrigger>
+      {trigger !== null ? (
+        <DialogTrigger asChild>
+          {trigger ?? <Button>New recipe book</Button>}
+        </DialogTrigger>
+      ) : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a recipe book</DialogTitle>
