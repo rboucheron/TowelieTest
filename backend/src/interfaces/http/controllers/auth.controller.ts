@@ -5,7 +5,10 @@ import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
 import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
 import { authRateLimiter } from "@/interfaces/http/middlewares/rate-limiters";
 import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import { requireParam } from "@/interfaces/http/middlewares/params";
 import { unauthenticated } from "@/shared/errors";
+import { AcceptedExternalAuthProviders } from "@/application/dtos/auth.dto";
+import type { ExternalAuthProvider } from "@/application/dtos/auth.dto";
 import { env } from "@/infrastructure/persistence/env";
 
 const REFRESH_COOKIE = "refresh_token";
@@ -41,6 +44,26 @@ export function createAuthRouter(container: Container): Router {
 
       setRefreshCookie(res, result.data.refreshToken);
       res.status(200).json({ accessToken: result.data.accessToken, user: result.data.user });
+    })
+  );
+
+  router.post(
+    "/external/login/:authProvider",
+    authRateLimiter,
+    asyncHandler(async (req: Request, res: Response) => {
+      const input = LoginSchema.parse(req.body);
+      const authProvider = requireParam(req, "authProvider") as ExternalAuthProvider;
+      if (!AcceptedExternalAuthProviders.includes(authProvider)) {
+        sendAppError(res, unauthenticated(`Unsupported auth provider: ${authProvider}`));
+
+        return;
+      }
+
+      const result = await useCases.externalLogin.execute(input, authProvider);
+      if (!result.success) { sendAppError(res, result.error); return; }
+
+      setRefreshCookie(res, result.data.refreshToken);
+      res.status(201).json({ accessToken: result.data.accessToken, user: result.data.user });
     })
   );
 

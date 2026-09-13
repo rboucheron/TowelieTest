@@ -18,3 +18,12 @@ export interface LoginResultDTO {
   accessToken: string;
   user: AuthenticatedUserDTO;
 }
+
+export interface ExternalAuthInput {
+  email: string;
+  token: string; 
+}
+
+export type ExternalAuthProvider = 'github' | 'google';
+
+export const AcceptedExternalAuthProviders: ExternalAuthProvider[] = ['github', 'google'];
