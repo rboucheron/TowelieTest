@@ -5,6 +5,14 @@ export const LoginInputSchema = z.object({
   email: z.string().email().max(254),
   password: z.string().min(1).max(200),
 })
+
+export const GithubLoginInputSchema = z.object({
+  email: z.string().email().max(254),
+  token: z.string().min(1).max(200),
+})
+
+export type GithubLoginInput = z.infer<typeof GithubLoginInputSchema>
+
 export type LoginInput = z.infer<typeof LoginInputSchema>
 
 export const AuthenticatedUserSchema = z.object({

@@ -10,10 +10,12 @@ import { PrismaTestCaseRepository } from "@/infrastructure/repositories/prisma-t
 import { PrismaBugRepository } from "@/infrastructure/repositories/prisma-bug-repository";
 import { BcryptPasswordHasher } from "@/infrastructure/services/bcrypt-password-hasher";
 import { JwtTokenService } from "@/infrastructure/services/jwt-token-service";
+import { GitHubAuth } from "@/infrastructure/external/services/github-auth";
 
 import { AuthorizationService } from "@/domain/services/authorization-service";
 
 import { LoginUseCase } from "@/application/use-cases/auth/login-use-case";
+import { ExternalLoginUseCase } from "@/application/use-cases/auth/external-login-use-case";
 import { RefreshTokenUseCase } from "@/application/use-cases/auth/refresh-token-use-case";
 import { LogoutUseCase } from "@/application/use-cases/auth/logout-use-case";
 import { GetMeUseCase } from "@/application/use-cases/me/get-me-use-case";
@@ -61,6 +63,7 @@ const bugRepository = new PrismaBugRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService(env.JWT_ACCESS_SECRET);
 const authorizationService = new AuthorizationService(membershipRepository);
+const githubAuth = new GitHubAuth();
 
 export const container = {
   repositories: {
@@ -80,6 +83,9 @@ export const container = {
   },
   useCases: {
     login: new LoginUseCase(userRepository, refreshTokenRepository, passwordHasher, tokenService),
+    externalLogin: new ExternalLoginUseCase(userRepository, refreshTokenRepository, tokenService, {
+      github: githubAuth,
+    }),
     refreshToken: new RefreshTokenUseCase(userRepository, refreshTokenRepository, tokenService),
     logout: new LogoutUseCase(refreshTokenRepository, tokenService),
     getMe: new GetMeUseCase(userRepository, membershipRepository, groupRepository),
