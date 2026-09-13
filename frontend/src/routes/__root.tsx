@@ -29,7 +29,8 @@ function RootLayout() {
   return (
     <QueryClientProvider client={Route.useRouteContext().queryClient}>
       <div className="fixed top-3 right-3 z-50">
-        <ThemeToggle />
+        {/** <ThemeToggle /> */}
+        
       </div>
       <Outlet />
     </QueryClientProvider>
