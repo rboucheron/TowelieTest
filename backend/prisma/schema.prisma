@@ -30,7 +30,8 @@ enum BugPriority {
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
-  passwordHash String
+  passwordHash String?
+  githubId     String?  @unique
   firstName    String
   lastName     String
   isSuperAdmin Boolean  @default(false)

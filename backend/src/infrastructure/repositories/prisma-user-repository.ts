@@ -7,6 +7,7 @@ const toDomain = (record: PrismaUser): User =>
     id: record.id,
     email: record.email,
     passwordHash: record.passwordHash,
+    githubId: record.githubId,
     firstName: record.firstName,
     lastName: record.lastName,
     isSuperAdmin: record.isSuperAdmin,
@@ -26,12 +27,23 @@ export class PrismaUserRepository implements UserRepository {
     return record ? toDomain(record) : null;
   }
 
+  async findByGithubId(githubId: string): Promise<User | null> {
+    const record = await this.prisma.user.findUnique({ where: { githubId } });
+    return record ? toDomain(record) : null;
+  }
+
+  async linkGithubAccount(userId: string, githubId: string): Promise<User> {
+    const record = await this.prisma.user.update({ where: { id: userId }, data: { githubId } });
+    return toDomain(record);
+  }
+
   async create(user: User): Promise<User> {
     const record = await this.prisma.user.create({
       data: {
         id: user.id,
         email: user.email,
         passwordHash: user.passwordHash,
+        githubId: user.githubId,
         firstName: user.firstName,
         lastName: user.lastName,
         isSuperAdmin: user.isSuperAdmin,

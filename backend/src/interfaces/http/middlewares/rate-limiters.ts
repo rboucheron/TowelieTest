@@ -8,6 +8,14 @@ export const authRateLimiter = rateLimit({
   message: { code: "RATE_LIMITED", message: "Too many attempts, please try again later" },
 });
 
+export const registerRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: "RATE_LIMITED", message: "Too many sign-ups, please try again later" },
+});
+
 export const apiRateLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 100,

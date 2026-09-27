@@ -1,3 +1,6 @@
 export * from '@/features/auth/hooks/use-auth'
 export * from '@/features/auth/hooks/use-can'
 export * from '@/features/auth/components/LoginForm'
+export * from '@/features/auth/components/RegisterForm'
+export * from '@/features/auth/components/GithubLoginButton'
+export * from '@/features/auth/components/AuthDivider'

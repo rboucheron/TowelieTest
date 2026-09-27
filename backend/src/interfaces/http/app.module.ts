@@ -1,6 +1,6 @@
 import { Module, RequestMethod, type MiddlewareConsumer, type NestModule } from "@nestjs/common";
 import { ContainerModule } from "@/interfaces/http/container.module";
-import { authRateLimiter } from "@/interfaces/http/middlewares/rate-limiters";
+import { authRateLimiter, registerRateLimiter } from "@/interfaces/http/middlewares/rate-limiters";
 import { HealthController } from "@/interfaces/http/controllers/health.controller";
 import { AuthController } from "@/interfaces/http/controllers/auth.controller";
 import { MeController } from "@/interfaces/http/controllers/me.controller";
@@ -47,5 +47,8 @@ export class AppModule implements NestModule {
         { path: "auth/login", method: RequestMethod.POST },
         { path: "auth/refresh", method: RequestMethod.POST }
       );
+    consumer
+      .apply(registerRateLimiter)
+      .forRoutes({ path: "auth/register", method: RequestMethod.POST });
   }
 }
