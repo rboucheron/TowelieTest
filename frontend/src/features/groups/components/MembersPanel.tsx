@@ -1,5 +1,5 @@
-import { GROUP_ROLES, ROLE_LABELS  } from '@/api'
-import type {GroupRole} from '@/api';
+import { GROUP_ROLES, ROLE_LABELS } from '@/api'
+import type { GroupRole } from '@/api'
 import { StatusBadge } from '@/components/StatusBadge'
 import {
   Button,
@@ -17,11 +17,13 @@ import {
 } from '@/components/ui'
 import { useCan } from '@/features/auth/hooks/use-can'
 import { AddMemberDialog } from '@/features/groups/components/AddMemberDialog'
+import { EditMemberProductsDialog } from '@/features/groups/components/EditMemberProductsDialog'
 import {
   useMembersQuery,
   useRemoveMemberMutation,
   useUpdateMemberRoleMutation,
 } from '@/features/groups/hooks/use-groups'
+import { useProductsQuery } from '@/features/products/hooks/use-products'
 import { ROLE_TONE } from '@/lib/status-tones'
 
 export interface MembersPanelProps {
@@ -33,6 +35,9 @@ export function MembersPanel({ groupId }: MembersPanelProps) {
   const updateRoleMutation = useUpdateMemberRoleMutation(groupId)
   const removeMemberMutation = useRemoveMemberMutation(groupId)
   const canManage = useCan(groupId, 'ADMIN')
+  const productsQuery = useProductsQuery(groupId)
+  const productName = (id: string) =>
+    productsQuery.data?.find((p) => p.id === id)?.name ?? '…'
 
   return (
     <div className="space-y-4">
@@ -47,6 +52,7 @@ export function MembersPanel({ groupId }: MembersPanelProps) {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
+            <TableHead>Product scope</TableHead>
             {canManage ? <TableHead /> : null}
           </TableRow>
         </TableHeader>
@@ -83,6 +89,25 @@ export function MembersPanel({ groupId }: MembersPanelProps) {
                   <StatusBadge tone={ROLE_TONE[member.role]}>
                     {ROLE_LABELS[member.role]}
                   </StatusBadge>
+                )}
+              </TableCell>
+              <TableCell>
+                {member.role !== 'DEVELOPER' ? (
+                  <span className="text-sm text-muted-foreground">
+                    All products
+                  </span>
+                ) : canManage ? (
+                  <EditMemberProductsDialog groupId={groupId} member={member} />
+                ) : member.productIds.length === 0 ? (
+                  <span className="text-sm text-muted-foreground">None</span>
+                ) : (
+                  <div className="flex flex-wrap gap-1">
+                    {member.productIds.map((id) => (
+                      <StatusBadge key={id} tone="neutral">
+                        {productName(id)}
+                      </StatusBadge>
+                    ))}
+                  </div>
                 )}
               </TableCell>
               {canManage ? (

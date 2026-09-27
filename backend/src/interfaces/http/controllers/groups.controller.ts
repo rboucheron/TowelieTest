@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -15,6 +16,8 @@ import {
   UpdateGroupSchema,
   CreateMemberSchema,
   UpdateMemberRoleSchema,
+  SetMemberProductsSchema,
+  type SetMemberProductsInput,
   type CreateGroupInput,
   type UpdateGroupInput,
   type CreateMemberInput,
@@ -90,6 +93,7 @@ export class GroupsController {
       firstName: m.user.firstName,
       lastName: m.user.lastName,
       role: m.membership.role,
+      productIds: m.membership.productIds,
     }));
   }
 
@@ -113,6 +117,23 @@ export class GroupsController {
       await this.useCases.updateMemberRole.execute(actor, groupId, userId, input.role)
     );
     return { userId: membership.userId, groupId: membership.groupId, role: membership.role };
+  }
+
+  @Put(":groupId/members/:userId/products")
+  async setMemberProducts(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Param("userId") userId: string,
+    @Body(new ZodValidationPipe(SetMemberProductsSchema)) input: SetMemberProductsInput
+  ): Promise<{ userId: string; groupId: string; productIds: string[] }> {
+    const membership = unwrap(
+      await this.useCases.setMemberProducts.execute(actor, groupId, userId, input)
+    );
+    return {
+      userId: membership.userId,
+      groupId: membership.groupId,
+      productIds: membership.productIds,
+    };
   }
 
   @Delete(":groupId/members/:userId")

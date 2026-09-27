@@ -19,4 +19,5 @@ export const ROLE_TONE: Record<GroupRole, StatusTone> = {
   QA: 'success',
   MAINTAINER: 'warning',
   ADMIN: 'danger',
+  DEVELOPER: 'neutral',
 }

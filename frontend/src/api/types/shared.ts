@@ -1,6 +1,12 @@
 import { z } from 'zod'
 
-export const GROUP_ROLES = ['USER', 'QA', 'MAINTAINER', 'ADMIN'] as const
+export const GROUP_ROLES = [
+  'USER',
+  'QA',
+  'MAINTAINER',
+  'ADMIN',
+  'DEVELOPER',
+] as const
 export const GroupRoleSchema = z.enum(GROUP_ROLES)
 export type GroupRole = z.infer<typeof GroupRoleSchema>
 
@@ -22,4 +28,5 @@ export const ROLE_LABELS: Record<GroupRole, string> = {
   QA: 'QA',
   MAINTAINER: 'Maintainer',
   ADMIN: 'Admin',
+  DEVELOPER: 'Developer',
 }

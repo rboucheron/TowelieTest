@@ -19,6 +19,7 @@ export const CreateMemberSchema = z.object({
   lastName: z.string().min(1).max(100),
   password: z.string().min(8).max(200),
   role: z.enum(GROUP_ROLES),
+  productIds: z.array(z.string().uuid()).max(50).default([]),
 });
 export type CreateMemberInput = z.infer<typeof CreateMemberSchema>;
 
@@ -26,6 +27,11 @@ export const UpdateMemberRoleSchema = z.object({
   role: z.enum(GROUP_ROLES),
 });
 export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleSchema>;
+
+export const SetMemberProductsSchema = z.object({
+  productIds: z.array(z.string().uuid()).max(50),
+});
+export type SetMemberProductsInput = z.infer<typeof SetMemberProductsSchema>;
 
 export interface GroupDTO {
   id: string;
@@ -41,4 +47,5 @@ export interface MemberDTO {
   firstName: string;
   lastName: string;
   role: string;
+  productIds: string[];
 }

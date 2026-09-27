@@ -1,18 +1,29 @@
 import { z } from 'zod'
 import { apiClient } from '../client'
-import { BugCommentSchema, BugDetailSchema, BugSchema } from '../types/bug'
+import {
+  BugCommentSchema,
+  BugDetailSchema,
+  BugSchema,
+  GroupBugSchema,
+} from '../types/bug'
 import type {
   Bug,
   BugComment,
   BugDetail,
   CreateBugCommentInput,
   CreateBugInput,
+  GroupBug,
   UpdateBugInput,
 } from '../types/bug'
 
 export async function listBugs(recipeBookId: string): Promise<Bug[]> {
   const response = await apiClient.get(`/v1/recipe-books/${recipeBookId}/bugs`)
   return z.array(BugSchema).parse(response.data)
+}
+
+export async function listGroupBugs(groupId: string): Promise<GroupBug[]> {
+  const response = await apiClient.get(`/v1/groups/${groupId}/bugs`)
+  return z.array(GroupBugSchema).parse(response.data)
 }
 
 export async function createBug(

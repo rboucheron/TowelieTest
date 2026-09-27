@@ -19,6 +19,7 @@ import {
   type CreateBugCommentInput,
   type BugDTO,
   type BugDetailDTO,
+  type GroupBugDTO,
   type BugCommentDTO,
   type UserSummaryDTO,
 } from "@/application/dtos/bug.dto";
@@ -57,6 +58,21 @@ const toBugCommentDTO = ({ comment, author }: BugCommentWithAuthor): BugCommentD
   createdAt: comment.createdAt.toISOString(),
   author: toUserSummaryDTO(author),
 });
+
+@Controller("groups/:groupId/bugs")
+@UseGuards(AuthGuard)
+export class GroupBugsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
+
+  @Get()
+  async list(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string
+  ): Promise<GroupBugDTO[]> {
+    const bugs = unwrap(await this.useCases.listGroupBugs.execute(actor, groupId));
+    return bugs.map(({ bug, recipeBookTitle }) => ({ ...toBugDTO(bug), recipeBookTitle }));
+  }
+}
 
 @Controller("recipe-books/:recipeBookId/bugs")
 @UseGuards(AuthGuard)

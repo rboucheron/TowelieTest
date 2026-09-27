@@ -1,16 +1,18 @@
 import type { MembershipRepository } from "@/domain/repositories/membership-repository";
+import type { ProductRepository } from "@/domain/repositories/product-repository";
 import {
   type AuthorizationService,
   type AuthorizedActor,
 } from "@/domain/services/authorization-service";
-import { isGroupRole } from "@/domain/value-objects/group-role";
 import type { Membership } from "@/domain/entities/membership";
+import type { SetMemberProductsInput } from "@/application/dtos/group.dto";
 import { type Result, ok, err } from "@/shared/result";
-import { notFound, validationError, forbidden, type AppError } from "@/shared/errors";
+import { notFound, validationError, type AppError } from "@/shared/errors";
 
-export class UpdateMemberRoleUseCase {
+export class SetMemberProductsUseCase {
   constructor(
     private readonly memberships: MembershipRepository,
+    private readonly products: ProductRepository,
     private readonly authorization: AuthorizationService
   ) {}
 
@@ -18,24 +20,23 @@ export class UpdateMemberRoleUseCase {
     actor: AuthorizedActor,
     groupId: string,
     targetUserId: string,
-    role: string
+    input: SetMemberProductsInput
   ): Promise<Result<Membership, AppError>> {
     const access = await this.authorization.requireGroupRole(actor, groupId, "ADMIN");
     if (!access.success) return err(access.error);
 
-    if (!isGroupRole(role)) return err(validationError(`Invalid role "${role}"`));
-
     const existing = await this.memberships.findByUserAndGroup(targetUserId, groupId);
     if (!existing) return err(notFound("Membership"));
-
-    if (existing.role === "ADMIN" && role !== "ADMIN" && targetUserId === actor.userId) {
-      return err(forbidden("You cannot demote yourself out of the Admin role"));
+    if (!existing.isDeveloper) {
+      return err(validationError("Only developers can be scoped to products"));
     }
 
-    const updated = await this.memberships.updateRole(targetUserId, groupId, role);
-    if (role !== "DEVELOPER" && updated.productIds.length > 0) {
-      return ok(await this.memberships.setProducts(updated.id, []));
+    const productIds = [...new Set(input.productIds)];
+    const products = await this.products.findManyByIds(productIds);
+    if (products.length !== productIds.length || products.some((p) => p.groupId !== groupId)) {
+      return err(validationError("One or more products do not belong to this group"));
     }
-    return ok(updated);
+
+    return ok(await this.memberships.setProducts(existing.id, productIds));
   }
 }

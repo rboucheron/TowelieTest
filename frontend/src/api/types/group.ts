@@ -28,6 +28,7 @@ export const MemberSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   role: GroupRoleSchema,
+  productIds: z.array(z.string()),
 })
 export type Member = z.infer<typeof MemberSchema>
 
@@ -37,5 +38,6 @@ export const CreateMemberInputSchema = z.object({
   lastName: z.string().min(1).max(100),
   password: z.string().min(8).max(200),
   role: GroupRoleSchema,
+  productIds: z.array(z.string().uuid()).max(50).default([]),
 })
 export type CreateMemberInput = z.infer<typeof CreateMemberInputSchema>

@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, Navigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { useCan } from '@/features/auth'
+import { useCan, useIsDeveloper } from '@/features/auth'
 import { useGroupQuery } from '@/features/groups'
 import { RecipeBooksList } from '@/features/recipe-books'
 
@@ -18,6 +18,11 @@ function GroupPage() {
   const { q } = Route.useSearch()
   const groupQuery = useGroupQuery(groupId)
   const canManage = useCan(groupId, 'ADMIN')
+  const isDeveloper = useIsDeveloper(groupId)
+
+  if (isDeveloper) {
+    return <Navigate to="/groups/$groupId/bugs" params={{ groupId }} replace />
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">

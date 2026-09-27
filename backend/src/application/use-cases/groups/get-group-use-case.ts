@@ -17,7 +17,7 @@ export class GetGroupUseCase {
     const group = await this.groups.findById(groupId);
     if (!group) return err(notFound("Group"));
 
-    const access = await this.authorization.requireGroupRole(actor, groupId, "USER");
+    const access = await this.authorization.requireGroupMembership(actor, groupId);
     if (!access.success) return err(access.error);
 
     return ok(group);

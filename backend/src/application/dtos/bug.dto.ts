@@ -48,6 +48,10 @@ export interface UserSummaryDTO {
   lastName: string;
 }
 
+export interface GroupBugDTO extends BugDTO {
+  recipeBookTitle: string | null;
+}
+
 export interface BugDetailDTO extends BugDTO {
   createdBy: UserSummaryDTO | null;
 }

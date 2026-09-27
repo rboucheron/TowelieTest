@@ -14,7 +14,7 @@ export class ListProductsUseCase {
   ) {}
 
   async execute(actor: AuthorizedActor, groupId: string): Promise<Result<Product[], AppError>> {
-    const access = await this.authorization.requireGroupRole(actor, groupId, "USER");
+    const access = await this.authorization.requireGroupMembership(actor, groupId);
     if (!access.success) return err(access.error);
 
     return ok(await this.products.findAllForGroup(groupId));

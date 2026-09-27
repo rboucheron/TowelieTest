@@ -33,7 +33,11 @@ export class CreateBugCommentUseCase {
     const recipeBook = await this.recipeBooks.findById(bug.recipeBookId);
     if (!recipeBook) return err(notFound("Recipe book"));
 
-    const access = await this.authorization.requireGroupRole(actor, recipeBook.groupId, "USER");
+    const access = await this.authorization.requireBugAccess(
+      actor,
+      recipeBook.groupId,
+      bug.affectedProductIds
+    );
     if (!access.success) return err(access.error);
 
     const commentResult = BugComment.create({

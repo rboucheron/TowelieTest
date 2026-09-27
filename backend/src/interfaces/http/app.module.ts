@@ -18,6 +18,7 @@ import {
   TestCasesController,
 } from "@/interfaces/http/controllers/test-cases.controller";
 import {
+  GroupBugsController,
   RecipeBookBugsController,
   BugsController,
 } from "@/interfaces/http/controllers/bugs.controller";
@@ -35,6 +36,7 @@ import {
     RecipeBooksController,
     RecipeBookTestCasesController,
     TestCasesController,
+    GroupBugsController,
     RecipeBookBugsController,
     BugsController,
   ],

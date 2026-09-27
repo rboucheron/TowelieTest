@@ -2,13 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import {
-  CreateMemberInputSchema,
-  GROUP_ROLES,
-  ROLE_LABELS
-  
-} from '@/api'
-import type {CreateMemberInput} from '@/api';
+import { CreateMemberInputSchema, GROUP_ROLES, ROLE_LABELS } from '@/api'
+import type { CreateMemberInput } from '@/api'
 import {
   Button,
   Dialog,
@@ -30,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui'
+import { ProductScopeField } from '@/features/groups/components/ProductScopeField'
 import { useAddMemberMutation } from '@/features/groups/hooks/use-groups'
 
 export interface AddMemberDialogProps {
@@ -39,7 +35,11 @@ export interface AddMemberDialogProps {
 export function AddMemberDialog({ groupId }: AddMemberDialogProps) {
   const [open, setOpen] = useState(false)
   const addMemberMutation = useAddMemberMutation(groupId)
-  const form = useForm<z.input<typeof CreateMemberInputSchema>, undefined, CreateMemberInput>({
+  const form = useForm<
+    z.input<typeof CreateMemberInputSchema>,
+    undefined,
+    CreateMemberInput
+  >({
     resolver: zodResolver(CreateMemberInputSchema),
     defaultValues: {
       email: '',
@@ -47,8 +47,10 @@ export function AddMemberDialog({ groupId }: AddMemberDialogProps) {
       lastName: '',
       password: '',
       role: 'USER',
+      productIds: [],
     },
   })
+  const selectedRole = form.watch('role')
 
   function onSubmit(values: CreateMemberInput) {
     addMemberMutation.mutate(values, {
@@ -148,6 +150,27 @@ export function AddMemberDialog({ groupId }: AddMemberDialogProps) {
                 </FormItem>
               )}
             />
+            {selectedRole === 'DEVELOPER' ? (
+              <FormField
+                control={form.control}
+                name="productIds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product scope</FormLabel>
+                    <p className="text-xs text-muted-foreground">
+                      Developers only see bugs affecting these products and have
+                      no access to recipe books.
+                    </p>
+                    <ProductScopeField
+                      groupId={groupId}
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
             <DialogFooter>
               <Button type="submit" disabled={addMemberMutation.isPending}>
                 {addMemberMutation.isPending ? 'Adding…' : 'Add member'}

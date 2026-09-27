@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { UserRepository } from "@/domain/repositories/user-repository";
 import type { MembershipRepository } from "@/domain/repositories/membership-repository";
+import type { ProductRepository } from "@/domain/repositories/product-repository";
 import {
   type AuthorizationService,
   type AuthorizedActor,
@@ -9,7 +10,7 @@ import type { PasswordHasher } from "@/domain/services/password-hasher";
 import { User } from "@/domain/entities/user";
 import type { CreateMemberInput } from "@/application/dtos/group.dto";
 import { type Result, ok, err } from "@/shared/result";
-import { alreadyExists, type AppError } from "@/shared/errors";
+import { alreadyExists, validationError, type AppError } from "@/shared/errors";
 
 export interface AddMemberResult {
   userId: string;
@@ -17,6 +18,7 @@ export interface AddMemberResult {
   firstName: string;
   lastName: string;
   role: string;
+  productIds: string[];
 }
 
 /**
@@ -28,6 +30,7 @@ export class AddMemberUseCase {
   constructor(
     private readonly users: UserRepository,
     private readonly memberships: MembershipRepository,
+    private readonly products: ProductRepository,
     private readonly authorization: AuthorizationService,
     private readonly passwordHasher: PasswordHasher
   ) {}
@@ -39,6 +42,12 @@ export class AddMemberUseCase {
   ): Promise<Result<AddMemberResult, AppError>> {
     const access = await this.authorization.requireGroupRole(actor, groupId, "ADMIN");
     if (!access.success) return err(access.error);
+
+    const productIds = input.role === "DEVELOPER" ? [...new Set(input.productIds)] : [];
+    const products = await this.products.findManyByIds(productIds);
+    if (products.length !== productIds.length || products.some((p) => p.groupId !== groupId)) {
+      return err(validationError("One or more products do not belong to this group"));
+    }
 
     const email = input.email.trim().toLowerCase();
     let user = await this.users.findByEmail(email);
@@ -63,7 +72,7 @@ export class AddMemberUseCase {
       user = await this.users.create(userResult.data);
     }
 
-    await this.memberships.create({ userId: user.id, groupId, role: input.role });
+    await this.memberships.create({ userId: user.id, groupId, role: input.role, productIds });
 
     return ok({
       userId: user.id,
@@ -71,6 +80,7 @@ export class AddMemberUseCase {
       firstName: user.firstName,
       lastName: user.lastName,
       role: input.role,
+      productIds,
     });
   }
 }

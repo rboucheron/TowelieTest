@@ -54,6 +54,16 @@ export async function updateMemberRole(
   await apiClient.patch(`/v1/groups/${groupId}/members/${userId}`, { role })
 }
 
+export async function setMemberProducts(
+  groupId: string,
+  userId: string,
+  productIds: string[],
+): Promise<void> {
+  await apiClient.put(`/v1/groups/${groupId}/members/${userId}/products`, {
+    productIds,
+  })
+}
+
 export async function removeMember(
   groupId: string,
   userId: string,

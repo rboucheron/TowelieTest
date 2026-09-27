@@ -31,6 +31,7 @@ import { AddMemberUseCase } from "@/application/use-cases/members/add-member-use
 import { ListMembersUseCase } from "@/application/use-cases/members/list-members-use-case";
 import { UpdateMemberRoleUseCase } from "@/application/use-cases/members/update-member-role-use-case";
 import { RemoveMemberUseCase } from "@/application/use-cases/members/remove-member-use-case";
+import { SetMemberProductsUseCase } from "@/application/use-cases/members/set-member-products-use-case";
 
 import { CreateProductUseCase } from "@/application/use-cases/products/create-product-use-case";
 import { ListProductsUseCase } from "@/application/use-cases/products/list-products-use-case";
@@ -53,6 +54,7 @@ import { ListBugsUseCase } from "@/application/use-cases/bugs/list-bugs-use-case
 import { UpdateBugUseCase } from "@/application/use-cases/bugs/update-bug-use-case";
 import { RemoveBugUseCase } from "@/application/use-cases/bugs/remove-bug-use-case";
 import { GetBugUseCase } from "@/application/use-cases/bugs/get-bug-use-case";
+import { ListGroupBugsUseCase } from "@/application/use-cases/bugs/list-group-bugs-use-case";
 import { ListBugCommentsUseCase } from "@/application/use-cases/bugs/list-bug-comments-use-case";
 import { CreateBugCommentUseCase } from "@/application/use-cases/bugs/create-bug-comment-use-case";
 
@@ -124,12 +126,18 @@ export const container = {
     addMember: new AddMemberUseCase(
       userRepository,
       membershipRepository,
+      productRepository,
       authorizationService,
       passwordHasher
     ),
     listMembers: new ListMembersUseCase(membershipRepository, authorizationService),
     updateMemberRole: new UpdateMemberRoleUseCase(membershipRepository, authorizationService),
     removeMember: new RemoveMemberUseCase(membershipRepository, authorizationService),
+    setMemberProducts: new SetMemberProductsUseCase(
+      membershipRepository,
+      productRepository,
+      authorizationService
+    ),
 
     createProduct: new CreateProductUseCase(productRepository, authorizationService),
     listProducts: new ListProductsUseCase(productRepository, authorizationService),
@@ -185,6 +193,11 @@ export const container = {
       authorizationService
     ),
     removeBug: new RemoveBugUseCase(bugRepository, recipeBookRepository, authorizationService),
+    listGroupBugs: new ListGroupBugsUseCase(
+      bugRepository,
+      recipeBookRepository,
+      authorizationService
+    ),
     getBug: new GetBugUseCase(
       bugRepository,
       recipeBookRepository,
