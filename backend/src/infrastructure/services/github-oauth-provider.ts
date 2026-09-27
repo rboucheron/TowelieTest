@@ -93,7 +93,14 @@ export class GithubOAuthProvider implements OAuthProvider {
         "X-GitHub-Api-Version": "2022-11-28",
       },
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      logger.warn(
+        { path, status: response.status, body: body.slice(0, 300) },
+        "GitHub API request failed"
+      );
+      return null;
+    }
     return response.json();
   }
 }

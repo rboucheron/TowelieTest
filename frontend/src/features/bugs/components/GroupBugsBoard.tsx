@@ -54,9 +54,8 @@ export function GroupBugsBoard({ groupId }: GroupBugsBoardProps) {
               {bugsForColumn.map((bug) => (
                 <Link
                   key={bug.id}
-                  to="/groups/$groupId/recipe-books/$recipeBookId"
-                  params={{ groupId, recipeBookId: bug.recipeBookId }}
-                  search={{ tab: 'bugs' }}
+                  to="/groups/$groupId/bugs/$bugId"
+                  params={{ groupId, bugId: bug.id }}
                   className="rounded-md border bg-card p-3 text-sm shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <p className="line-clamp-3 font-medium text-card-foreground">

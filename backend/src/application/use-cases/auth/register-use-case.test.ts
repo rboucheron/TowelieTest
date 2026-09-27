@@ -20,6 +20,7 @@ function buildUseCase(existing: User | null): {
 } {
   const users: UserRepository = {
     findById: vi.fn(),
+    findManyByIds: vi.fn(),
     findByEmail: vi.fn().mockResolvedValue(existing),
     findByGithubId: vi.fn(),
     linkGithubAccount: vi.fn(),

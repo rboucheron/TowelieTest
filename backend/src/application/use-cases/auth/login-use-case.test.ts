@@ -26,6 +26,7 @@ interface Deps {
 function buildDeps(userFound: User | null, passwordMatches: boolean): Deps {
   const users: UserRepository = {
     findById: vi.fn(),
+    findManyByIds: vi.fn(),
     findByEmail: vi.fn().mockResolvedValue(userFound),
     findByGithubId: vi.fn(),
     linkGithubAccount: vi.fn(),

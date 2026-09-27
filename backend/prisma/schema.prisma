@@ -40,6 +40,7 @@ model User {
   memberships   Membership[]
   refreshTokens RefreshToken[]
   bugsCreated   Bug[]          @relation("BugCreatedBy")
+  bugComments   BugComment[]
 
   @@map("users")
 }
@@ -159,6 +160,7 @@ model Bug {
   recipeBook       RecipeBook           @relation(fields: [recipeBookId], references: [id], onDelete: Cascade)
   createdBy        User                 @relation("BugCreatedBy", fields: [createdById], references: [id])
   affectedProducts BugAffectedProduct[]
+  comments         BugComment[]
 
   @@index([recipeBookId])
   @@map("bugs")
@@ -173,4 +175,18 @@ model BugAffectedProduct {
 
   @@id([bugId, productId])
   @@map("bug_affected_products")
+}
+
+model BugComment {
+  id        String   @id @default(uuid())
+  bugId     String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  bug    Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([bugId])
+  @@map("bug_comments")
 }

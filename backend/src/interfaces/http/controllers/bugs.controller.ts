@@ -13,12 +13,19 @@ import {
 import {
   CreateBugSchema,
   UpdateBugSchema,
+  CreateBugCommentSchema,
   type CreateBugInput,
   type UpdateBugInput,
+  type CreateBugCommentInput,
   type BugDTO,
+  type BugDetailDTO,
+  type BugCommentDTO,
+  type UserSummaryDTO,
 } from "@/application/dtos/bug.dto";
+import type { BugCommentWithAuthor } from "@/application/use-cases/bugs/list-bug-comments-use-case";
 import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import type { Bug } from "@/domain/entities/bug";
+import type { User } from "@/domain/entities/user";
 import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
 import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
 import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
@@ -38,6 +45,17 @@ const toBugDTO = (bug: Bug): BugDTO => ({
   priority: bug.priority,
   createdById: bug.createdById,
   createdAt: bug.createdAt.toISOString(),
+});
+
+const toUserSummaryDTO = (user: User | null): UserSummaryDTO | null =>
+  user ? { id: user.id, firstName: user.firstName, lastName: user.lastName } : null;
+
+const toBugCommentDTO = ({ comment, author }: BugCommentWithAuthor): BugCommentDTO => ({
+  id: comment.id,
+  bugId: comment.bugId,
+  content: comment.content,
+  createdAt: comment.createdAt.toISOString(),
+  author: toUserSummaryDTO(author),
 });
 
 @Controller("recipe-books/:recipeBookId/bugs")
@@ -68,6 +86,35 @@ export class RecipeBookBugsController {
 @UseGuards(AuthGuard)
 export class BugsController {
   constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
+
+  @Get(":bugId")
+  async get(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("bugId") bugId: string
+  ): Promise<BugDetailDTO> {
+    const { bug, author } = unwrap(await this.useCases.getBug.execute(actor, bugId));
+    return { ...toBugDTO(bug), createdBy: toUserSummaryDTO(author) };
+  }
+
+  @Get(":bugId/comments")
+  async listComments(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("bugId") bugId: string
+  ): Promise<BugCommentDTO[]> {
+    const comments = unwrap(await this.useCases.listBugComments.execute(actor, bugId));
+    return comments.map(toBugCommentDTO);
+  }
+
+  @Post(":bugId/comments")
+  async createComment(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("bugId") bugId: string,
+    @Body(new ZodValidationPipe(CreateBugCommentSchema)) input: CreateBugCommentInput
+  ): Promise<BugCommentDTO> {
+    return toBugCommentDTO(
+      unwrap(await this.useCases.createBugComment.execute(actor, bugId, input))
+    );
+  }
 
   @Patch(":bugId")
   async update(
