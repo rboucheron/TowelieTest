@@ -4,24 +4,24 @@ import {
   getRecipeBook,
   listRecipeBooks,
   removeRecipeBook,
-  updateRecipeBook
-  
-  
+  updateRecipeBook,
 } from '@/api'
-import type {CreateRecipeBookInput, UpdateRecipeBookInput} from '@/api';
+import type { CreateRecipeBookInput, UpdateRecipeBookInput } from '@/api'
 import { queryKeys } from '@/lib/query-keys'
 
-export function useRecipeBooksQuery(groupId: string) {
+export function useRecipeBooksQuery(groupId: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.recipeBooks(groupId),
     queryFn: () => listRecipeBooks(groupId),
+    enabled,
   })
 }
 
-export function useRecipeBookQuery(recipeBookId: string) {
+export function useRecipeBookQuery(recipeBookId: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.recipeBook(recipeBookId),
     queryFn: () => getRecipeBook(recipeBookId),
+    enabled,
   })
 }
 

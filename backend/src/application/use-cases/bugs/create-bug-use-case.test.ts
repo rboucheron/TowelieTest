@@ -50,6 +50,7 @@ function buildUseCase(products: Product[], membership: Membership | null = qaMem
   const bugs: BugRepository = {
     findById: vi.fn(),
     findAllForRecipeBook: vi.fn(),
+    findAllForGroup: vi.fn(),
     create: vi.fn().mockImplementation((bug: Bug) => bug),
     update: vi.fn(),
     remove: vi.fn(),
@@ -75,6 +76,7 @@ function buildUseCase(products: Product[], membership: Membership | null = qaMem
     findAllForUser: vi.fn(),
     create: vi.fn(),
     updateRole: vi.fn(),
+    setProducts: vi.fn(),
     remove: vi.fn(),
   };
 

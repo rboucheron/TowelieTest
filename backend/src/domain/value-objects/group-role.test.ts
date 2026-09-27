@@ -11,6 +11,11 @@ describe("roleAtLeast", () => {
     expect(roleAtLeast("QA", "QA")).toBe(true);
   });
 
+  it("never lets a DEVELOPER satisfy a hierarchical role", () => {
+    expect(roleAtLeast("DEVELOPER", "USER")).toBe(false);
+    expect(roleAtLeast("DEVELOPER", "ADMIN")).toBe(false);
+  });
+
   it("returns false when the actual role is below the required role", () => {
     expect(roleAtLeast("USER", "QA")).toBe(false);
     expect(roleAtLeast("QA", "ADMIN")).toBe(false);
@@ -23,6 +28,7 @@ describe("isGroupRole", () => {
     expect(isGroupRole("QA")).toBe(true);
     expect(isGroupRole("MAINTAINER")).toBe(true);
     expect(isGroupRole("ADMIN")).toBe(true);
+    expect(isGroupRole("DEVELOPER")).toBe(true);
   });
 
   it("rejects unknown strings", () => {

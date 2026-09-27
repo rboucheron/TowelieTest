@@ -66,6 +66,7 @@ function buildUseCase(opts: { bug?: Bug | null; membership?: Membership | null }
   const bugs: BugRepository = {
     findById: vi.fn().mockResolvedValue(opts.bug === undefined ? bug : opts.bug),
     findAllForRecipeBook: vi.fn(),
+    findAllForGroup: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
@@ -97,6 +98,7 @@ function buildUseCase(opts: { bug?: Bug | null; membership?: Membership | null }
     findAllForUser: vi.fn(),
     create: vi.fn(),
     updateRole: vi.fn(),
+    setProducts: vi.fn(),
     remove: vi.fn(),
   };
 

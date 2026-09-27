@@ -62,7 +62,9 @@ export function GroupBugsBoard({ groupId }: GroupBugsBoardProps) {
                     {bug.problemDescription}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {bug.recipeBookTitle} · {bug.environment}
+                    {bug.recipeBookTitle
+                      ? `${bug.recipeBookTitle} · ${bug.environment}`
+                      : bug.environment}
                   </p>
                 </Link>
               ))}

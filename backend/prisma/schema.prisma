@@ -12,6 +12,7 @@ enum GroupRole {
   QA
   MAINTAINER
   ADMIN
+  DEVELOPER
 }
 
 enum TestCasePriority {
@@ -79,8 +80,9 @@ model Membership {
   role      GroupRole @default(USER)
   createdAt DateTime  @default(now())
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  products MembershipProduct[]
 
   @@unique([userId, groupId])
   @@index([groupId])
@@ -92,9 +94,10 @@ model Product {
   groupId String
   name    String
 
-  group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group           Group                @relation(fields: [groupId], references: [id], onDelete: Cascade)
   recipeBooks     RecipeBookProduct[]
   affectedInBugs  BugAffectedProduct[]
+  developerScopes MembershipProduct[]
 
   @@index([groupId])
   @@map("products")
@@ -145,17 +148,17 @@ model TestCase {
 }
 
 model Bug {
-  id                  String      @id @default(uuid())
-  recipeBookId        String
-  environment         String
-  problemDescription  String
-  expectedBehavior    String
-  observedBehavior    String
-  stepsToReproduce    String
-  evidenceAndContext  String
-  priority            BugPriority @default(MINOR)
-  createdById         String
-  createdAt           DateTime    @default(now())
+  id                 String      @id @default(uuid())
+  recipeBookId       String
+  environment        String
+  problemDescription String
+  expectedBehavior   String
+  observedBehavior   String
+  stepsToReproduce   String
+  evidenceAndContext String
+  priority           BugPriority @default(MINOR)
+  createdById        String
+  createdAt          DateTime    @default(now())
 
   recipeBook       RecipeBook           @relation(fields: [recipeBookId], references: [id], onDelete: Cascade)
   createdBy        User                 @relation("BugCreatedBy", fields: [createdById], references: [id])
@@ -189,4 +192,16 @@ model BugComment {
 
   @@index([bugId])
   @@map("bug_comments")
+}
+
+model MembershipProduct {
+  membershipId String
+  productId    String
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([membershipId, productId])
+  @@index([productId])
+  @@map("membership_products")
 }

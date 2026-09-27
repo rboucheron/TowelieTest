@@ -39,6 +39,18 @@ export class PrismaBugRepository implements BugRepository {
     return records.map(toDomain);
   }
 
+  async findAllForGroup(groupId: string, productIds?: string[]): Promise<Bug[]> {
+    const records = await this.prisma.bug.findMany({
+      where: {
+        recipeBook: { groupId },
+        ...(productIds ? { affectedProducts: { some: { productId: { in: productIds } } } } : {}),
+      },
+      include: includeProducts,
+      orderBy: { createdAt: "desc" },
+    });
+    return records.map(toDomain);
+  }
+
   async create(bug: Bug): Promise<Bug> {
     const record = await this.prisma.bug.create({
       data: {

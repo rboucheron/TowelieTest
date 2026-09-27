@@ -15,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui'
-import { useCan } from '@/features/auth'
+import { useCan, useIsDeveloper } from '@/features/auth'
 import { useGroupBugsQuery } from '@/features/bugs'
 import { useGroupQuery, useMembersQuery } from '@/features/groups'
 import { useRecipeBooksQuery } from '@/features/recipe-books'
@@ -26,9 +26,10 @@ export interface AppSidebarProps {
 }
 
 export function AppSidebar({ groupId }: AppSidebarProps) {
+  const isDeveloper = useIsDeveloper(groupId)
   const groupQuery = useGroupQuery(groupId)
-  const membersQuery = useMembersQuery(groupId)
-  const recipeBooksQuery = useRecipeBooksQuery(groupId)
+  const membersQuery = useMembersQuery(groupId, !isDeveloper)
+  const recipeBooksQuery = useRecipeBooksQuery(groupId, !isDeveloper)
   const { bugs } = useGroupBugsQuery(groupId)
   const canManage = useCan(groupId, 'ADMIN')
   const group = groupQuery.data
@@ -43,7 +44,10 @@ export function AppSidebar({ groupId }: AppSidebarProps) {
               {group?.name ?? '…'}
             </span>
             {group?.myRole ? (
-              <StatusBadge tone={ROLE_TONE[group.myRole]} className="mt-0.5 w-fit">
+              <StatusBadge
+                tone={ROLE_TONE[group.myRole]}
+                className="mt-0.5 w-fit"
+              >
                 {ROLE_LABELS[group.myRole]}
               </StatusBadge>
             ) : null}
@@ -55,17 +59,19 @@ export function AppSidebar({ groupId }: AppSidebarProps) {
           <SidebarGroupLabel>Group</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Recipe books">
-                  <Link to="/groups/$groupId" params={{ groupId }}>
-                    <LayoutGrid />
-                    <span>Recipe books</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuBadge>
-                  {recipeBooksQuery.data?.length ?? 0}
-                </SidebarMenuBadge>
-              </SidebarMenuItem>
+              {!isDeveloper ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Recipe books">
+                    <Link to="/groups/$groupId" params={{ groupId }}>
+                      <LayoutGrid />
+                      <span>Recipe books</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <SidebarMenuBadge>
+                    {recipeBooksQuery.data?.length ?? 0}
+                  </SidebarMenuBadge>
+                </SidebarMenuItem>
+              ) : null}
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Bugs">
@@ -77,21 +83,23 @@ export function AppSidebar({ groupId }: AppSidebarProps) {
                 <SidebarMenuBadge>{bugs.length}</SidebarMenuBadge>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Members">
-                  <Link
-                    to="/groups/$groupId/settings"
-                    params={{ groupId }}
-                    search={{ tab: 'members' }}
-                  >
-                    <Users />
-                    <span>Members</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuBadge>
-                  {membersQuery.data?.length ?? 0}
-                </SidebarMenuBadge>
-              </SidebarMenuItem>
+              {!isDeveloper ? (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Members">
+                    <Link
+                      to="/groups/$groupId/settings"
+                      params={{ groupId }}
+                      search={{ tab: 'members' }}
+                    >
+                      <Users />
+                      <span>Members</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <SidebarMenuBadge>
+                    {membersQuery.data?.length ?? 0}
+                  </SidebarMenuBadge>
+                </SidebarMenuItem>
+              ) : null}
 
               {canManage ? (
                 <SidebarMenuItem>

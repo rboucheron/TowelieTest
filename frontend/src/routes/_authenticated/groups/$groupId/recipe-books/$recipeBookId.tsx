@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui'
+import { useIsDeveloper } from '@/features/auth'
 import { BugsPanel } from '@/features/bugs'
 import { useRecipeBookQuery } from '@/features/recipe-books'
 import { TestCasesPanel } from '@/features/test-cases'
@@ -20,7 +21,12 @@ function RecipeBookPage() {
   const { groupId, recipeBookId } = Route.useParams()
   const { tab } = Route.useSearch()
   const navigate = Route.useNavigate()
-  const recipeBookQuery = useRecipeBookQuery(recipeBookId)
+  const isDeveloper = useIsDeveloper(groupId)
+  const recipeBookQuery = useRecipeBookQuery(recipeBookId, !isDeveloper)
+
+  if (isDeveloper) {
+    return <Navigate to="/groups/$groupId/bugs" params={{ groupId }} replace />
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">

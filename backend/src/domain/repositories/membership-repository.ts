@@ -10,6 +10,7 @@ export interface CreateMembershipInput {
   userId: string;
   groupId: string;
   role: GroupRole;
+  productIds?: string[];
 }
 
 export interface MembershipRepository {
@@ -18,5 +19,6 @@ export interface MembershipRepository {
   findAllForUser(userId: string): Promise<Membership[]>;
   create(input: CreateMembershipInput): Promise<Membership>;
   updateRole(userId: string, groupId: string, role: GroupRole): Promise<Membership>;
+  setProducts(membershipId: string, productIds: string[]): Promise<Membership>;
   remove(userId: string, groupId: string): Promise<void>;
 }

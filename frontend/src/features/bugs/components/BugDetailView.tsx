@@ -7,6 +7,7 @@ import { UserAvatar, userDisplayName } from '@/components/UserAvatar'
 import { Separator } from '@/components/ui'
 import { BugComments } from '@/features/bugs/components/BugComments'
 import { useBugQuery } from '@/features/bugs/hooks/use-bug-detail'
+import { useIsDeveloper } from '@/features/auth'
 import { useProductsQuery } from '@/features/products/hooks/use-products'
 import { useRecipeBooksQuery } from '@/features/recipe-books'
 import { BUG_PRIORITY_TONE } from '@/lib/status-tones'
@@ -44,7 +45,8 @@ function Section({
 export function BugDetailView({ groupId, bugId }: BugDetailViewProps) {
   const bugQuery = useBugQuery(bugId)
   const productsQuery = useProductsQuery(groupId)
-  const recipeBooksQuery = useRecipeBooksQuery(groupId)
+  const isDeveloper = useIsDeveloper(groupId)
+  const recipeBooksQuery = useRecipeBooksQuery(groupId, !isDeveloper)
 
   if (bugQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>
@@ -78,15 +80,26 @@ export function BugDetailView({ groupId, bugId }: BugDetailViewProps) {
 
   return (
     <div className="space-y-6">
-      <Link
-        to="/groups/$groupId/recipe-books/$recipeBookId"
-        params={{ groupId, recipeBookId: bug.recipeBookId }}
-        search={{ tab: 'bugs' }}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" />
-        {recipeBook?.title ?? 'Recipe book'}
-      </Link>
+      {isDeveloper ? (
+        <Link
+          to="/groups/$groupId/bugs"
+          params={{ groupId }}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Bugs
+        </Link>
+      ) : (
+        <Link
+          to="/groups/$groupId/recipe-books/$recipeBookId"
+          params={{ groupId, recipeBookId: bug.recipeBookId }}
+          search={{ tab: 'bugs' }}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          {recipeBook?.title ?? 'Recipe book'}
+        </Link>
+      )}
 
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

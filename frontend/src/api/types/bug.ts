@@ -41,6 +41,11 @@ export const UpdateBugInputSchema = z.object({
 })
 export type UpdateBugInput = z.infer<typeof UpdateBugInputSchema>
 
+export const GroupBugSchema = BugSchema.extend({
+  recipeBookTitle: z.string().nullable(),
+})
+export type GroupBug = z.infer<typeof GroupBugSchema>
+
 export const UserSummarySchema = z.object({
   id: z.string(),
   firstName: z.string(),

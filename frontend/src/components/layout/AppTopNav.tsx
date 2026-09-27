@@ -1,4 +1,9 @@
-import { Link, useLocation, useNavigate, useParams } from '@tanstack/react-router'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from '@tanstack/react-router'
 import { Bug, ChevronDown, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { CreateBugDialog } from '@/features/bugs/components/CreateBugDialog'
@@ -20,24 +25,27 @@ import {
   Input,
   SidebarTrigger,
 } from '@/components/ui'
-import { useLogoutMutation, useMeQuery } from '@/features/auth'
+import { useIsDeveloper, useLogoutMutation, useMeQuery } from '@/features/auth'
 import { CreateGroupDialog } from '@/features/groups/components/CreateGroupDialog'
 
 type ActiveCreate = 'group' | 'recipe-book' | 'test-case' | 'bug' | null
 
 function GroupCounters({ groupId }: { groupId: string }) {
-  const recipeBooksQuery = useRecipeBooksQuery(groupId)
+  const isDeveloper = useIsDeveloper(groupId)
+  const recipeBooksQuery = useRecipeBooksQuery(groupId, !isDeveloper)
   const { bugs } = useGroupBugsQuery(groupId)
 
   return (
     <>
-      <Link
-        to="/groups/$groupId"
-        params={{ groupId }}
-        className="flex items-center gap-1.5 rounded-md border bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
-      >
-        {recipeBooksQuery.data?.length ?? 0} recipe books
-      </Link>
+      {!isDeveloper ? (
+        <Link
+          to="/groups/$groupId"
+          params={{ groupId }}
+          className="flex items-center gap-1.5 rounded-md border bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+        >
+          {recipeBooksQuery.data?.length ?? 0} recipe books
+        </Link>
+      ) : null}
       <Link
         to="/groups/$groupId/bugs"
         params={{ groupId }}
@@ -60,6 +68,7 @@ export function AppTopNav() {
   const [activeCreate, setActiveCreate] = useState<ActiveCreate>(null)
 
   const { groupId, recipeBookId } = params
+  const isDeveloper = useIsDeveloper(groupId)
   const segments = location.pathname.split('/').filter(Boolean)
   const isGroupsList = segments.length === 1 && segments[0] === 'groups'
   const isGroupOverview =
@@ -110,7 +119,7 @@ export function AppTopNav() {
               New group
             </DropdownMenuItem>
           ) : null}
-          {groupId ? (
+          {groupId && !isDeveloper ? (
             <DropdownMenuItem onSelect={() => setActiveCreate('recipe-book')}>
               New recipe book
             </DropdownMenuItem>
@@ -125,9 +134,11 @@ export function AppTopNav() {
               </DropdownMenuItem>
             </>
           ) : null}
-          {!user?.isSuperAdmin && !groupId ? (
+          {!user?.isSuperAdmin && (!groupId || isDeveloper) ? (
             <DropdownMenuItem disabled>
-              Open a group to create content
+              {isDeveloper
+                ? 'Developers cannot create content'
+                : 'Open a group to create content'}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuContent>

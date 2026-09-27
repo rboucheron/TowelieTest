@@ -1,8 +1,9 @@
-export const GROUP_ROLES = ["USER", "QA", "MAINTAINER", "ADMIN"] as const;
+export const GROUP_ROLES = ["USER", "QA", "MAINTAINER", "ADMIN", "DEVELOPER"] as const;
 
 export type GroupRole = (typeof GROUP_ROLES)[number];
 
 const ROLE_RANK: Record<GroupRole, number> = {
+  DEVELOPER: -1,
   USER: 0,
   QA: 1,
   MAINTAINER: 2,

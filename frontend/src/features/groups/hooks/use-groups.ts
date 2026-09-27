@@ -6,14 +6,16 @@ import {
   listGroups,
   listMembers,
   removeMember,
+  setMemberProducts,
   updateGroup,
-  updateMemberRole
-  
-  
-  
-  
+  updateMemberRole,
 } from '@/api'
-import type {CreateGroupInput, CreateMemberInput, GroupRole, UpdateGroupInput} from '@/api';
+import type {
+  CreateGroupInput,
+  CreateMemberInput,
+  GroupRole,
+  UpdateGroupInput,
+} from '@/api'
 import { queryKeys } from '@/lib/query-keys'
 
 export function useGroupsQuery() {
@@ -50,10 +52,11 @@ export function useUpdateGroupMutation(groupId: string) {
   })
 }
 
-export function useMembersQuery(groupId: string) {
+export function useMembersQuery(groupId: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.members(groupId),
     queryFn: () => listMembers(groupId),
+    enabled,
   })
 }
 
@@ -74,6 +77,24 @@ export function useUpdateMemberRoleMutation(groupId: string) {
   return useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: GroupRole }) =>
       updateMemberRole(groupId, userId, role),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.members(groupId),
+      })
+    },
+  })
+}
+
+export function useSetMemberProductsMutation(groupId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      userId,
+      productIds,
+    }: {
+      userId: string
+      productIds: string[]
+    }) => setMemberProducts(groupId, userId, productIds),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.members(groupId),
