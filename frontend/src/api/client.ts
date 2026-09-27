@@ -1,6 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 // Kept in memory only — never persisted (localStorage/cookies readable by JS are an XSS target).
 // The refresh token itself lives in an httpOnly cookie the browser sends automatically.

@@ -5,17 +5,24 @@ import { Email } from "@/domain/value-objects/email";
 export interface UserProps {
   id: string;
   email: Email;
-  passwordHash: string;
+  /** Null when the account only signs in through an OAuth provider. */
+  passwordHash: string | null;
+  githubId: string | null;
   firstName: string;
   lastName: string;
   isSuperAdmin: boolean;
   createdAt: Date;
 }
 
+type UserInput = Omit<UserProps, "email" | "githubId"> & {
+  email: string;
+  githubId?: string | null;
+};
+
 export class User {
   private constructor(private readonly props: UserProps) {}
 
-  static create(props: Omit<UserProps, "email"> & { email: string }): Result<User, AppError> {
+  static create(props: UserInput): Result<User, AppError> {
     const emailResult = Email.create(props.email);
     if (!emailResult.success) return err(emailResult.error);
 
@@ -30,6 +37,7 @@ export class User {
       new User({
         ...props,
         email: emailResult.data,
+        githubId: props.githubId ?? null,
         firstName: props.firstName.trim(),
         lastName: props.lastName.trim(),
       })
@@ -37,12 +45,12 @@ export class User {
   }
 
   /** Rehydrates a User already known to be valid (e.g. read back from the database). */
-  static reconstitute(props: Omit<UserProps, "email"> & { email: string }): User {
+  static reconstitute(props: UserInput): User {
     const emailResult = Email.create(props.email);
     if (!emailResult.success) {
       throw new Error(`Corrupt persisted user ${props.id}: invalid email`);
     }
-    return new User({ ...props, email: emailResult.data });
+    return new User({ ...props, email: emailResult.data, githubId: props.githubId ?? null });
   }
 
   get id(): string {
@@ -53,8 +61,12 @@ export class User {
     return this.props.email.toString();
   }
 
-  get passwordHash(): string {
+  get passwordHash(): string | null {
     return this.props.passwordHash;
+  }
+
+  get githubId(): string | null {
+    return this.props.githubId;
   }
 
   get firstName(): string {

@@ -27,18 +27,18 @@ function buildDeps(userFound: User | null, passwordMatches: boolean): Deps {
   const users: UserRepository = {
     findById: vi.fn(),
     findByEmail: vi.fn().mockResolvedValue(userFound),
+    findByGithubId: vi.fn(),
+    linkGithubAccount: vi.fn(),
     create: vi.fn(),
   };
   const refreshTokens: RefreshTokenRepository = {
-    create: vi
-      .fn()
-      .mockResolvedValue({
-        id: "rt1",
-        userId: "u1",
-        tokenHash: "hash",
-        expiresAt: new Date(),
-        revokedAt: null,
-      }),
+    create: vi.fn().mockResolvedValue({
+      id: "rt1",
+      userId: "u1",
+      tokenHash: "hash",
+      expiresAt: new Date(),
+      revokedAt: null,
+    }),
     findByHash: vi.fn(),
     revoke: vi.fn(),
   };
@@ -109,5 +109,31 @@ describe("LoginUseCase", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error.code).toBe("INVALID_CREDENTIALS");
+  });
+
+  it("fails with INVALID_CREDENTIALS for a GitHub-only account without a password", async () => {
+    const githubOnlyUser = User.reconstitute({
+      id: "u2",
+      email: "gh@example.com",
+      passwordHash: null,
+      githubId: "42",
+      firstName: "Git",
+      lastName: "Hub",
+      isSuperAdmin: false,
+      createdAt: new Date(),
+    });
+    const deps = buildDeps(githubOnlyUser, true);
+    const useCase = new LoginUseCase(
+      deps.users,
+      deps.refreshTokens,
+      deps.passwordHasher,
+      deps.tokenService
+    );
+
+    const result = await useCase.execute({ email: "gh@example.com", password: "anything" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.code).toBe("INVALID_CREDENTIALS");
+    expect(deps.passwordHasher.compare).not.toHaveBeenCalled();
   });
 });

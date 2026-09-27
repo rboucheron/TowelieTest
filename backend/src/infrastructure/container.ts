@@ -10,10 +10,13 @@ import { PrismaTestCaseRepository } from "@/infrastructure/repositories/prisma-t
 import { PrismaBugRepository } from "@/infrastructure/repositories/prisma-bug-repository";
 import { BcryptPasswordHasher } from "@/infrastructure/services/bcrypt-password-hasher";
 import { JwtTokenService } from "@/infrastructure/services/jwt-token-service";
+import { GithubOAuthProvider } from "@/infrastructure/services/github-oauth-provider";
 
 import { AuthorizationService } from "@/domain/services/authorization-service";
 
 import { LoginUseCase } from "@/application/use-cases/auth/login-use-case";
+import { RegisterUseCase } from "@/application/use-cases/auth/register-use-case";
+import { LoginWithGithubUseCase } from "@/application/use-cases/auth/login-with-github-use-case";
 import { RefreshTokenUseCase } from "@/application/use-cases/auth/refresh-token-use-case";
 import { LogoutUseCase } from "@/application/use-cases/auth/logout-use-case";
 import { GetMeUseCase } from "@/application/use-cases/me/get-me-use-case";
@@ -61,6 +64,14 @@ const bugRepository = new PrismaBugRepository(prisma);
 const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService(env.JWT_ACCESS_SECRET);
 const authorizationService = new AuthorizationService(membershipRepository);
+const githubOAuthProvider =
+  env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
+    ? new GithubOAuthProvider({
+        clientId: env.GITHUB_CLIENT_ID,
+        clientSecret: env.GITHUB_CLIENT_SECRET,
+        callbackUrl: env.GITHUB_CALLBACK_URL,
+      })
+    : null;
 
 export const container = {
   repositories: {
@@ -77,9 +88,24 @@ export const container = {
     passwordHasher,
     tokenService,
     authorizationService,
+    githubOAuthProvider,
   },
   useCases: {
     login: new LoginUseCase(userRepository, refreshTokenRepository, passwordHasher, tokenService),
+    register: new RegisterUseCase(
+      userRepository,
+      refreshTokenRepository,
+      passwordHasher,
+      tokenService
+    ),
+    loginWithGithub: githubOAuthProvider
+      ? new LoginWithGithubUseCase(
+          userRepository,
+          refreshTokenRepository,
+          tokenService,
+          githubOAuthProvider
+        )
+      : null,
     refreshToken: new RefreshTokenUseCase(userRepository, refreshTokenRepository, tokenService),
     logout: new LogoutUseCase(refreshTokenRepository, tokenService),
     getMe: new GetMeUseCase(userRepository, membershipRepository, groupRepository),

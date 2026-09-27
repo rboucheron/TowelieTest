@@ -11,7 +11,6 @@ export interface RefreshResultDTO {
   refreshToken: string;
 }
 
-/** Rotates the refresh token on every use so a stolen-but-unused token is a one-shot liability. */
 export class RefreshTokenUseCase {
   constructor(
     private readonly users: UserRepository,
@@ -23,7 +22,6 @@ export class RefreshTokenUseCase {
     const tokenHash = this.tokenService.hashToken(presentedToken);
     const record = await this.refreshTokens.findByHash(tokenHash);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- `record` narrows to non-null for the rest of this function only after this whole check passes
     if (!record || record.revokedAt !== null || record.expiresAt < new Date()) {
       return err(unauthenticated("Invalid or expired refresh token"));
     }

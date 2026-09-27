@@ -7,6 +7,17 @@ export const LoginInputSchema = z.object({
 })
 export type LoginInput = z.infer<typeof LoginInputSchema>
 
+export const RegisterInputSchema = z.object({
+  email: z.string().email().max(254),
+  firstName: z.string().trim().min(1, 'Required').max(100),
+  lastName: z.string().trim().min(1, 'Required').max(100),
+  password: z
+    .string()
+    .min(12, 'Password must be at least 12 characters')
+    .max(200),
+})
+export type RegisterInput = z.infer<typeof RegisterInputSchema>
+
 export const AuthenticatedUserSchema = z.object({
   id: z.string(),
   email: z.string(),

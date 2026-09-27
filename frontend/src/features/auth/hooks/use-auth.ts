@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getMe, login, logout  } from '@/api'
-import type {LoginInput} from '@/api';
+import { getMe, login, logout, register } from '@/api'
+import type { LoginInput, RegisterInput } from '@/api'
 import { queryKeys } from '@/lib/query-keys'
 
 export function useMeQuery() {
@@ -16,6 +16,17 @@ export function useLoginMutation() {
 
   return useMutation({
     mutationFn: (input: LoginInput) => login(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.me })
+    },
+  })
+}
+
+export function useRegisterMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: RegisterInput) => register(input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.me })
     },

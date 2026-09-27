@@ -6,6 +6,14 @@ export const LoginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof LoginSchema>;
 
+export const RegisterSchema = z.object({
+  email: z.string().email().max(254),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  password: z.string().min(12).max(200),
+});
+export type RegisterInput = z.infer<typeof RegisterSchema>;
+
 export interface AuthenticatedUserDTO {
   id: string;
   email: string;
