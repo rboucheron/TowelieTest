@@ -11,4 +11,6 @@ export const queryKeys = {
     ['recipe-books', recipeBookId, 'test-cases'] as const,
   bugs: (recipeBookId: string) =>
     ['recipe-books', recipeBookId, 'bugs'] as const,
+  bug: (bugId: string) => ['bugs', bugId] as const,
+  bugComments: (bugId: string) => ['bugs', bugId, 'comments'] as const,
 }

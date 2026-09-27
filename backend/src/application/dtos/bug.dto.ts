@@ -41,3 +41,26 @@ export interface BugDTO {
   createdById: string;
   createdAt: string;
 }
+
+export interface UserSummaryDTO {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface BugDetailDTO extends BugDTO {
+  createdBy: UserSummaryDTO | null;
+}
+
+export const CreateBugCommentSchema = z.object({
+  content: z.string().trim().min(1).max(5000),
+});
+export type CreateBugCommentInput = z.infer<typeof CreateBugCommentSchema>;
+
+export interface BugCommentDTO {
+  id: string;
+  bugId: string;
+  content: string;
+  createdAt: string;
+  author: UserSummaryDTO | null;
+}

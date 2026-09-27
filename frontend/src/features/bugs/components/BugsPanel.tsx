@@ -1,3 +1,4 @@
+import { Link, useNavigate } from '@tanstack/react-router'
 import { StatusBadge } from '@/components/StatusBadge'
 import {
   Button,
@@ -25,6 +26,7 @@ export function BugsPanel({ groupId, recipeBookId }: BugsPanelProps) {
   const bugsQuery = useBugsQuery(recipeBookId)
   const removeBugMutation = useRemoveBugMutation(recipeBookId)
   const canManage = useCan(groupId, 'QA')
+  const navigate = useNavigate()
 
   return (
     <div className="space-y-4">
@@ -46,9 +48,25 @@ export function BugsPanel({ groupId, recipeBookId }: BugsPanelProps) {
         </TableHeader>
         <TableBody>
           {bugsQuery.data?.map((bug) => (
-            <TableRow key={bug.id}>
+            <TableRow
+              key={bug.id}
+              className="cursor-pointer"
+              onClick={() =>
+                navigate({
+                  to: '/groups/$groupId/bugs/$bugId',
+                  params: { groupId, bugId: bug.id },
+                })
+              }
+            >
               <TableCell className="max-w-md whitespace-pre-wrap">
-                {bug.problemDescription}
+                <Link
+                  to="/groups/$groupId/bugs/$bugId"
+                  params={{ groupId, bugId: bug.id }}
+                  className="font-medium hover:underline"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {bug.problemDescription}
+                </Link>
               </TableCell>
               <TableCell>{bug.environment}</TableCell>
               <TableCell>
@@ -61,7 +79,10 @@ export function BugsPanel({ groupId, recipeBookId }: BugsPanelProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeBugMutation.mutate(bug.id)}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      removeBugMutation.mutate(bug.id)
+                    }}
                   >
                     Remove
                   </Button>

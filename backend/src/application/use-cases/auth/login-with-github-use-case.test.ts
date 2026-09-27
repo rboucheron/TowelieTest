@@ -35,6 +35,7 @@ function buildUseCase(opts: {
 }): { users: UserRepository; useCase: LoginWithGithubUseCase } {
   const users: UserRepository = {
     findById: vi.fn(),
+    findManyByIds: vi.fn(),
     findByEmail: vi.fn().mockResolvedValue(opts.byEmail ?? null),
     findByGithubId: vi.fn().mockResolvedValue(opts.byGithubId ?? null),
     linkGithubAccount: vi.fn().mockResolvedValue(makeUser({ githubId: "42" })),

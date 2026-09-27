@@ -40,3 +40,29 @@ export const UpdateBugInputSchema = z.object({
   priority: BugPrioritySchema.optional(),
 })
 export type UpdateBugInput = z.infer<typeof UpdateBugInputSchema>
+
+export const UserSummarySchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+})
+export type UserSummary = z.infer<typeof UserSummarySchema>
+
+export const BugDetailSchema = BugSchema.extend({
+  createdBy: UserSummarySchema.nullable(),
+})
+export type BugDetail = z.infer<typeof BugDetailSchema>
+
+export const BugCommentSchema = z.object({
+  id: z.string(),
+  bugId: z.string(),
+  content: z.string(),
+  createdAt: z.string(),
+  author: UserSummarySchema.nullable(),
+})
+export type BugComment = z.infer<typeof BugCommentSchema>
+
+export const CreateBugCommentInputSchema = z.object({
+  content: z.string().trim().min(1, 'Write a comment first').max(5000),
+})
+export type CreateBugCommentInput = z.infer<typeof CreateBugCommentInputSchema>

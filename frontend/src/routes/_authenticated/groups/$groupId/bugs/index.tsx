@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { GroupBugsBoard } from '@/features/bugs'
 
-export const Route = createFileRoute('/_authenticated/groups/$groupId/bugs')({
+export const Route = createFileRoute('/_authenticated/groups/$groupId/bugs/')({
   component: GroupBugsPage,
 })
 

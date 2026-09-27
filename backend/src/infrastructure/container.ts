@@ -8,6 +8,7 @@ import { PrismaProductRepository } from "@/infrastructure/repositories/prisma-pr
 import { PrismaRecipeBookRepository } from "@/infrastructure/repositories/prisma-recipe-book-repository";
 import { PrismaTestCaseRepository } from "@/infrastructure/repositories/prisma-test-case-repository";
 import { PrismaBugRepository } from "@/infrastructure/repositories/prisma-bug-repository";
+import { PrismaBugCommentRepository } from "@/infrastructure/repositories/prisma-bug-comment-repository";
 import { BcryptPasswordHasher } from "@/infrastructure/services/bcrypt-password-hasher";
 import { JwtTokenService } from "@/infrastructure/services/jwt-token-service";
 import { GithubOAuthProvider } from "@/infrastructure/services/github-oauth-provider";
@@ -51,6 +52,9 @@ import { CreateBugUseCase } from "@/application/use-cases/bugs/create-bug-use-ca
 import { ListBugsUseCase } from "@/application/use-cases/bugs/list-bugs-use-case";
 import { UpdateBugUseCase } from "@/application/use-cases/bugs/update-bug-use-case";
 import { RemoveBugUseCase } from "@/application/use-cases/bugs/remove-bug-use-case";
+import { GetBugUseCase } from "@/application/use-cases/bugs/get-bug-use-case";
+import { ListBugCommentsUseCase } from "@/application/use-cases/bugs/list-bug-comments-use-case";
+import { CreateBugCommentUseCase } from "@/application/use-cases/bugs/create-bug-comment-use-case";
 
 const userRepository = new PrismaUserRepository(prisma);
 const refreshTokenRepository = new PrismaRefreshTokenRepository(prisma);
@@ -60,6 +64,7 @@ const productRepository = new PrismaProductRepository(prisma);
 const recipeBookRepository = new PrismaRecipeBookRepository(prisma);
 const testCaseRepository = new PrismaTestCaseRepository(prisma);
 const bugRepository = new PrismaBugRepository(prisma);
+const bugCommentRepository = new PrismaBugCommentRepository(prisma);
 
 const passwordHasher = new BcryptPasswordHasher();
 const tokenService = new JwtTokenService(env.JWT_ACCESS_SECRET);
@@ -83,6 +88,7 @@ export const container = {
     recipeBook: recipeBookRepository,
     testCase: testCaseRepository,
     bug: bugRepository,
+    bugComment: bugCommentRepository,
   },
   services: {
     passwordHasher,
@@ -179,6 +185,26 @@ export const container = {
       authorizationService
     ),
     removeBug: new RemoveBugUseCase(bugRepository, recipeBookRepository, authorizationService),
+    getBug: new GetBugUseCase(
+      bugRepository,
+      recipeBookRepository,
+      userRepository,
+      authorizationService
+    ),
+    listBugComments: new ListBugCommentsUseCase(
+      bugRepository,
+      bugCommentRepository,
+      recipeBookRepository,
+      userRepository,
+      authorizationService
+    ),
+    createBugComment: new CreateBugCommentUseCase(
+      bugRepository,
+      bugCommentRepository,
+      recipeBookRepository,
+      userRepository,
+      authorizationService
+    ),
   },
 };
 
