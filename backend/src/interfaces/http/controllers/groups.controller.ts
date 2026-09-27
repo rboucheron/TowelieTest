@@ -1,17 +1,35 @@
-import { Router, type Request, type Response } from "express";
-import type { Container } from "@/infrastructure/container";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   CreateGroupSchema,
   UpdateGroupSchema,
   CreateMemberSchema,
   UpdateMemberRoleSchema,
+  type CreateGroupInput,
+  type UpdateGroupInput,
+  type CreateMemberInput,
+  type UpdateMemberRoleInput,
   type GroupDTO,
+  type MemberDTO,
 } from "@/application/dtos/group.dto";
-import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
-import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
-import { requireParam } from "@/interfaces/http/middlewares/params";
-import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import type { AddMemberResult } from "@/application/use-cases/members/add-member-use-case";
+import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import type { Group } from "@/domain/entities/group";
+import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
+import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
+import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
+import { ZodValidationPipe } from "@/interfaces/http/pipes/zod-validation.pipe";
+import { unwrap } from "@/interfaces/http/unwrap";
 
 const toGroupDTO = (group: Group, myRole: string | null): GroupDTO => ({
   id: group.id,
@@ -21,112 +39,89 @@ const toGroupDTO = (group: Group, myRole: string | null): GroupDTO => ({
   myRole,
 });
 
-export function createGroupsRouter(container: Container): Router {
-  const router = Router();
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("groups")
+@UseGuards(AuthGuard)
+export class GroupsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.get(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const groups = await useCases.listGroups.execute(requireActor(req));
-      res.status(200).json(groups.map((g) => toGroupDTO(g.group, g.myRole)));
-    })
-  );
+  @Get()
+  async list(@CurrentActor() actor: AuthorizedActor): Promise<GroupDTO[]> {
+    const groups = await this.useCases.listGroups.execute(actor);
+    return groups.map((g) => toGroupDTO(g.group, g.myRole));
+  }
 
-  router.post(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = CreateGroupSchema.parse(req.body);
-      const result = await useCases.createGroup.execute(requireActor(req), input);
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(201).json(toGroupDTO(result.data, "ADMIN"));
-    })
-  );
+  @Post()
+  async create(
+    @CurrentActor() actor: AuthorizedActor,
+    @Body(new ZodValidationPipe(CreateGroupSchema)) input: CreateGroupInput
+  ): Promise<GroupDTO> {
+    const group = unwrap(await this.useCases.createGroup.execute(actor, input));
+    return toGroupDTO(group, "ADMIN");
+  }
 
-  router.get(
-    "/:groupId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.getGroup.execute(requireActor(req), requireParam(req, "groupId"));
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(toGroupDTO(result.data, null));
-    })
-  );
+  @Get(":groupId")
+  async get(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string
+  ): Promise<GroupDTO> {
+    const group = unwrap(await this.useCases.getGroup.execute(actor, groupId));
+    return toGroupDTO(group, null);
+  }
 
-  router.patch(
-    "/:groupId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = UpdateGroupSchema.parse(req.body);
-      const result = await useCases.updateGroup.execute(
-        requireActor(req),
-        requireParam(req, "groupId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(toGroupDTO(result.data, null));
-    })
-  );
+  @Patch(":groupId")
+  async update(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Body(new ZodValidationPipe(UpdateGroupSchema)) input: UpdateGroupInput
+  ): Promise<GroupDTO> {
+    const group = unwrap(await this.useCases.updateGroup.execute(actor, groupId, input));
+    return toGroupDTO(group, null);
+  }
 
-  router.get(
-    "/:groupId/members",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.listMembers.execute(requireActor(req), requireParam(req, "groupId"));
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(
-        result.data.map((m) => ({
-          userId: m.user.id,
-          email: m.user.email,
-          firstName: m.user.firstName,
-          lastName: m.user.lastName,
-          role: m.membership.role,
-        }))
-      );
-    })
-  );
+  @Get(":groupId/members")
+  async listMembers(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string
+  ): Promise<MemberDTO[]> {
+    const members = unwrap(await this.useCases.listMembers.execute(actor, groupId));
+    return members.map((m) => ({
+      userId: m.user.id,
+      email: m.user.email,
+      firstName: m.user.firstName,
+      lastName: m.user.lastName,
+      role: m.membership.role,
+    }));
+  }
 
-  router.post(
-    "/:groupId/members",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = CreateMemberSchema.parse(req.body);
-      const result = await useCases.addMember.execute(
-        requireActor(req),
-        requireParam(req, "groupId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(201).json(result.data);
-    })
-  );
+  @Post(":groupId/members")
+  async addMember(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Body(new ZodValidationPipe(CreateMemberSchema)) input: CreateMemberInput
+  ): Promise<AddMemberResult> {
+    return unwrap(await this.useCases.addMember.execute(actor, groupId, input));
+  }
 
-  router.patch(
-    "/:groupId/members/:userId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = UpdateMemberRoleSchema.parse(req.body);
-      const result = await useCases.updateMemberRole.execute(
-        requireActor(req),
-        requireParam(req, "groupId"),
-        requireParam(req, "userId"),
-        input.role
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res
-        .status(200)
-        .json({ userId: result.data.userId, groupId: result.data.groupId, role: result.data.role });
-    })
-  );
+  @Patch(":groupId/members/:userId")
+  async updateMemberRole(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Param("userId") userId: string,
+    @Body(new ZodValidationPipe(UpdateMemberRoleSchema)) input: UpdateMemberRoleInput
+  ): Promise<{ userId: string; groupId: string; role: string }> {
+    const membership = unwrap(
+      await this.useCases.updateMemberRole.execute(actor, groupId, userId, input.role)
+    );
+    return { userId: membership.userId, groupId: membership.groupId, role: membership.role };
+  }
 
-  router.delete(
-    "/:groupId/members/:userId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.removeMember.execute(
-        requireActor(req),
-        requireParam(req, "groupId"),
-        requireParam(req, "userId")
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(204).send();
-    })
-  );
-
-  return router;
+  @Delete(":groupId/members/:userId")
+  @HttpCode(204)
+  async removeMember(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Param("userId") userId: string
+  ): Promise<void> {
+    unwrap(await this.useCases.removeMember.execute(actor, groupId, userId));
+  }
 }

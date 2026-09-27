@@ -1,15 +1,29 @@
-import { Router, type Request, type Response } from "express";
-import type { Container } from "@/infrastructure/container";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   CreateTestCaseSchema,
   UpdateTestCaseSchema,
+  type CreateTestCaseInput,
+  type UpdateTestCaseInput,
   type TestCaseDTO,
 } from "@/application/dtos/test-case.dto";
-import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
-import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
-import { requireParam } from "@/interfaces/http/middlewares/params";
-import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import type { TestCase } from "@/domain/entities/test-case";
+import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
+import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
+import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
+import { ZodValidationPipe } from "@/interfaces/http/pipes/zod-validation.pipe";
+import { unwrap } from "@/interfaces/http/unwrap";
 
 const toTestCaseDTO = (testCase: TestCase): TestCaseDTO => ({
   id: testCase.id,
@@ -22,72 +36,54 @@ const toTestCaseDTO = (testCase: TestCase): TestCaseDTO => ({
   createdAt: testCase.createdAt.toISOString(),
 });
 
-/** Mounted at /v1/recipe-books/:recipeBookId/test-cases */
-export function createRecipeBookTestCasesRouter(container: Container): Router {
-  const router = Router({ mergeParams: true });
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("recipe-books/:recipeBookId/test-cases")
+@UseGuards(AuthGuard)
+export class RecipeBookTestCasesController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.get(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.listTestCases.execute(
-        requireActor(req),
-        requireParam(req, "recipeBookId")
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(result.data.map(toTestCaseDTO));
-    })
-  );
+  @Get()
+  async list(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("recipeBookId") recipeBookId: string
+  ): Promise<TestCaseDTO[]> {
+    const testCases = unwrap(await this.useCases.listTestCases.execute(actor, recipeBookId));
+    return testCases.map(toTestCaseDTO);
+  }
 
-  router.post(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = CreateTestCaseSchema.parse(req.body);
-      const result = await useCases.createTestCase.execute(
-        requireActor(req),
-        requireParam(req, "recipeBookId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(201).json(toTestCaseDTO(result.data));
-    })
-  );
-
-  return router;
+  @Post()
+  async create(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("recipeBookId") recipeBookId: string,
+    @Body(new ZodValidationPipe(CreateTestCaseSchema)) input: CreateTestCaseInput
+  ): Promise<TestCaseDTO> {
+    return toTestCaseDTO(
+      unwrap(await this.useCases.createTestCase.execute(actor, recipeBookId, input))
+    );
+  }
 }
 
-/** Mounted at /v1/test-cases/:testCaseId */
-export function createTestCaseRouter(container: Container): Router {
-  const router = Router();
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("test-cases")
+@UseGuards(AuthGuard)
+export class TestCasesController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.patch(
-    "/:testCaseId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = UpdateTestCaseSchema.parse(req.body);
-      const result = await useCases.updateTestCase.execute(
-        requireActor(req),
-        requireParam(req, "testCaseId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(toTestCaseDTO(result.data));
-    })
-  );
+  @Patch(":testCaseId")
+  async update(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("testCaseId") testCaseId: string,
+    @Body(new ZodValidationPipe(UpdateTestCaseSchema)) input: UpdateTestCaseInput
+  ): Promise<TestCaseDTO> {
+    return toTestCaseDTO(
+      unwrap(await this.useCases.updateTestCase.execute(actor, testCaseId, input))
+    );
+  }
 
-  router.delete(
-    "/:testCaseId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.removeTestCase.execute(
-        requireActor(req),
-        requireParam(req, "testCaseId")
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(204).send();
-    })
-  );
-
-  return router;
+  @Delete(":testCaseId")
+  @HttpCode(204)
+  async remove(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("testCaseId") testCaseId: string
+  ): Promise<void> {
+    unwrap(await this.useCases.removeTestCase.execute(actor, testCaseId));
+  }
 }

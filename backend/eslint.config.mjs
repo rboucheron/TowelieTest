@@ -91,6 +91,9 @@ export default tseslint.config(
         { fixMixedExportsWithInlineTypeSpecifier: true },
       ],
 
+      // Nest modules are intentionally empty, decorator-configured classes.
+      "@typescript-eslint/no-extraneous-class": ["error", { allowWithDecorator: true }],
+
       "import/no-duplicates": ["error", { "prefer-inline": true }],
 
       "security/detect-object-injection": "warn",
