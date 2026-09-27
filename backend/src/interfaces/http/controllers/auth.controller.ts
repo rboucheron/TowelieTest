@@ -1,15 +1,19 @@
-import { Router, type Request, type Response } from "express";
-import type { Container } from "@/infrastructure/container";
-import { LoginSchema } from "@/application/dtos/auth.dto";
-import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
-import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
-import { authRateLimiter } from "@/interfaces/http/middlewares/rate-limiters";
-import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res, UseGuards } from "@nestjs/common";
+import type { Request, Response } from "express";
+import { LoginSchema, type LoginInput, type LoginResultDTO } from "@/application/dtos/auth.dto";
+import type { MeDTO } from "@/application/use-cases/me/get-me-use-case";
+import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import { unauthenticated } from "@/shared/errors";
 import { env } from "@/infrastructure/persistence/env";
+import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
+import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
+import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
+import { ZodValidationPipe } from "@/interfaces/http/pipes/zod-validation.pipe";
+import { unwrap } from "@/interfaces/http/unwrap";
 
 const REFRESH_COOKIE = "refresh_token";
 const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_COOKIE_PATH = "/v1/auth";
 
 const getCookieValue = (req: Request, name: string): string | undefined => {
   // eslint-disable-next-line security/detect-object-injection -- `name` is always our own REFRESH_COOKIE constant, never user input
@@ -23,61 +27,53 @@ const setRefreshCookie = (res: Response, token: string): void => {
     secure: env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: REFRESH_COOKIE_MAX_AGE_MS,
-    path: "/v1/auth",
+    path: REFRESH_COOKIE_PATH,
   });
 };
 
-export function createAuthRouter(container: Container): Router {
-  const router = Router();
-  const { useCases, services } = container;
+/** Rate-limited routes (login, refresh) are wired in AppModule.configure. */
+@Controller("auth")
+export class AuthController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.post(
-    "/login",
-    authRateLimiter,
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = LoginSchema.parse(req.body);
-      const result = await useCases.login.execute(input);
-      if (!result.success) { sendAppError(res, result.error); return; }
+  @Post("login")
+  @HttpCode(200)
+  async login(
+    @Body(new ZodValidationPipe(LoginSchema)) input: LoginInput,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<LoginResultDTO> {
+    const { accessToken, refreshToken, user } = unwrap(await this.useCases.login.execute(input));
+    setRefreshCookie(res, refreshToken);
+    return { accessToken, user };
+  }
 
-      setRefreshCookie(res, result.data.refreshToken);
-      res.status(200).json({ accessToken: result.data.accessToken, user: result.data.user });
-    })
-  );
+  @Post("refresh")
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<{ accessToken: string }> {
+    const presentedToken = getCookieValue(req, REFRESH_COOKIE);
+    if (!presentedToken) throw unauthenticated("No refresh token presented");
 
-  router.post(
-    "/refresh",
-    authRateLimiter,
-    asyncHandler(async (req: Request, res: Response) => {
-      const presentedToken = getCookieValue(req, REFRESH_COOKIE);
-      if (!presentedToken) { sendAppError(res, unauthenticated("No refresh token presented")); return; }
+    const { accessToken, refreshToken } = unwrap(
+      await this.useCases.refreshToken.execute(presentedToken)
+    );
+    setRefreshCookie(res, refreshToken);
+    return { accessToken };
+  }
 
-      const result = await useCases.refreshToken.execute(presentedToken);
-      if (!result.success) { sendAppError(res, result.error); return; }
+  @Post("logout")
+  @HttpCode(204)
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
+    const presentedToken = getCookieValue(req, REFRESH_COOKIE);
+    if (presentedToken) await this.useCases.logout.execute(presentedToken);
+    res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
+  }
 
-      setRefreshCookie(res, result.data.refreshToken);
-      res.status(200).json({ accessToken: result.data.accessToken });
-    })
-  );
-
-  router.post(
-    "/logout",
-    asyncHandler(async (req: Request, res: Response) => {
-      const presentedToken = getCookieValue(req, REFRESH_COOKIE);
-      if (presentedToken) await useCases.logout.execute(presentedToken);
-      res.clearCookie(REFRESH_COOKIE, { path: "/v1/auth" });
-      res.status(204).send();
-    })
-  );
-
-  router.get(
-    "/me",
-    authenticate(services.tokenService),
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.getMe.execute(requireActor(req).userId);
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(result.data);
-    })
-  );
-
-  return router;
+  @Get("me")
+  @UseGuards(AuthGuard)
+  async me(@CurrentActor() actor: AuthorizedActor): Promise<MeDTO> {
+    return unwrap(await this.useCases.getMe.execute(actor.userId));
+  }
 }

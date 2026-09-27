@@ -1,15 +1,29 @@
-import { Router, type Request, type Response } from "express";
-import type { Container } from "@/infrastructure/container";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import {
   CreateProductSchema,
   UpdateProductSchema,
+  type CreateProductInput,
+  type UpdateProductInput,
   type ProductDTO,
 } from "@/application/dtos/product.dto";
-import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
-import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
-import { requireParam } from "@/interfaces/http/middlewares/params";
-import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import type { Product } from "@/domain/entities/product";
+import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
+import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
+import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
+import { ZodValidationPipe } from "@/interfaces/http/pipes/zod-validation.pipe";
+import { unwrap } from "@/interfaces/http/unwrap";
 
 const toProductDTO = (product: Product): ProductDTO => ({
   id: product.id,
@@ -17,69 +31,50 @@ const toProductDTO = (product: Product): ProductDTO => ({
   name: product.name,
 });
 
-/** Mounted at /v1/groups/:groupId/products */
-export function createGroupProductsRouter(container: Container): Router {
-  const router = Router({ mergeParams: true });
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("groups/:groupId/products")
+@UseGuards(AuthGuard)
+export class GroupProductsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.get(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.listProducts.execute(requireActor(req), requireParam(req, "groupId"));
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(result.data.map(toProductDTO));
-    })
-  );
+  @Get()
+  async list(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string
+  ): Promise<ProductDTO[]> {
+    const products = unwrap(await this.useCases.listProducts.execute(actor, groupId));
+    return products.map(toProductDTO);
+  }
 
-  router.post(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = CreateProductSchema.parse(req.body);
-      const result = await useCases.createProduct.execute(
-        requireActor(req),
-        requireParam(req, "groupId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(201).json(toProductDTO(result.data));
-    })
-  );
-
-  return router;
+  @Post()
+  async create(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("groupId") groupId: string,
+    @Body(new ZodValidationPipe(CreateProductSchema)) input: CreateProductInput
+  ): Promise<ProductDTO> {
+    return toProductDTO(unwrap(await this.useCases.createProduct.execute(actor, groupId, input)));
+  }
 }
 
-/** Mounted at /v1/products/:productId */
-export function createProductRouter(container: Container): Router {
-  const router = Router();
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("products")
+@UseGuards(AuthGuard)
+export class ProductsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.patch(
-    "/:productId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = UpdateProductSchema.parse(req.body);
-      const result = await useCases.updateProduct.execute(
-        requireActor(req),
-        requireParam(req, "productId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(toProductDTO(result.data));
-    })
-  );
+  @Patch(":productId")
+  async update(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("productId") productId: string,
+    @Body(new ZodValidationPipe(UpdateProductSchema)) input: UpdateProductInput
+  ): Promise<ProductDTO> {
+    return toProductDTO(unwrap(await this.useCases.updateProduct.execute(actor, productId, input)));
+  }
 
-  router.delete(
-    "/:productId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.removeProduct.execute(
-        requireActor(req),
-        requireParam(req, "productId")
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(204).send();
-    })
-  );
-
-  return router;
+  @Delete(":productId")
+  @HttpCode(204)
+  async remove(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("productId") productId: string
+  ): Promise<void> {
+    unwrap(await this.useCases.removeProduct.execute(actor, productId));
+  }
 }

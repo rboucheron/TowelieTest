@@ -1,11 +1,29 @@
-import { Router, type Request, type Response } from "express";
-import type { Container } from "@/infrastructure/container";
-import { CreateBugSchema, UpdateBugSchema, type BugDTO } from "@/application/dtos/bug.dto";
-import { asyncHandler } from "@/interfaces/http/middlewares/async-handler";
-import { authenticate, requireActor } from "@/interfaces/http/middlewares/authenticate";
-import { requireParam } from "@/interfaces/http/middlewares/params";
-import { sendAppError } from "@/interfaces/http/middlewares/error-handler";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  CreateBugSchema,
+  UpdateBugSchema,
+  type CreateBugInput,
+  type UpdateBugInput,
+  type BugDTO,
+} from "@/application/dtos/bug.dto";
+import type { AuthorizedActor } from "@/domain/services/authorization-service";
 import type { Bug } from "@/domain/entities/bug";
+import { USE_CASES, type UseCases } from "@/interfaces/http/container.module";
+import { AuthGuard } from "@/interfaces/http/guards/auth.guard";
+import { CurrentActor } from "@/interfaces/http/decorators/current-actor.decorator";
+import { ZodValidationPipe } from "@/interfaces/http/pipes/zod-validation.pipe";
+import { unwrap } from "@/interfaces/http/unwrap";
 
 const toBugDTO = (bug: Bug): BugDTO => ({
   id: bug.id,
@@ -22,66 +40,50 @@ const toBugDTO = (bug: Bug): BugDTO => ({
   createdAt: bug.createdAt.toISOString(),
 });
 
-/** Mounted at /v1/recipe-books/:recipeBookId/bugs */
-export function createRecipeBookBugsRouter(container: Container): Router {
-  const router = Router({ mergeParams: true });
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("recipe-books/:recipeBookId/bugs")
+@UseGuards(AuthGuard)
+export class RecipeBookBugsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.get(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.listBugs.execute(requireActor(req), requireParam(req, "recipeBookId"));
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(result.data.map(toBugDTO));
-    })
-  );
+  @Get()
+  async list(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("recipeBookId") recipeBookId: string
+  ): Promise<BugDTO[]> {
+    const bugs = unwrap(await this.useCases.listBugs.execute(actor, recipeBookId));
+    return bugs.map(toBugDTO);
+  }
 
-  router.post(
-    "/",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = CreateBugSchema.parse(req.body);
-      const result = await useCases.createBug.execute(
-        requireActor(req),
-        requireParam(req, "recipeBookId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(201).json(toBugDTO(result.data));
-    })
-  );
-
-  return router;
+  @Post()
+  async create(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("recipeBookId") recipeBookId: string,
+    @Body(new ZodValidationPipe(CreateBugSchema)) input: CreateBugInput
+  ): Promise<BugDTO> {
+    return toBugDTO(unwrap(await this.useCases.createBug.execute(actor, recipeBookId, input)));
+  }
 }
 
-/** Mounted at /v1/bugs/:bugId */
-export function createBugRouter(container: Container): Router {
-  const router = Router();
-  const { useCases, services } = container;
-  router.use(authenticate(services.tokenService));
+@Controller("bugs")
+@UseGuards(AuthGuard)
+export class BugsController {
+  constructor(@Inject(USE_CASES) private readonly useCases: UseCases) {}
 
-  router.patch(
-    "/:bugId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const input = UpdateBugSchema.parse(req.body);
-      const result = await useCases.updateBug.execute(
-        requireActor(req),
-        requireParam(req, "bugId"),
-        input
-      );
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(200).json(toBugDTO(result.data));
-    })
-  );
+  @Patch(":bugId")
+  async update(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("bugId") bugId: string,
+    @Body(new ZodValidationPipe(UpdateBugSchema)) input: UpdateBugInput
+  ): Promise<BugDTO> {
+    return toBugDTO(unwrap(await this.useCases.updateBug.execute(actor, bugId, input)));
+  }
 
-  router.delete(
-    "/:bugId",
-    asyncHandler(async (req: Request, res: Response) => {
-      const result = await useCases.removeBug.execute(requireActor(req), requireParam(req, "bugId"));
-      if (!result.success) { sendAppError(res, result.error); return; }
-      res.status(204).send();
-    })
-  );
-
-  return router;
+  @Delete(":bugId")
+  @HttpCode(204)
+  async remove(
+    @CurrentActor() actor: AuthorizedActor,
+    @Param("bugId") bugId: string
+  ): Promise<void> {
+    unwrap(await this.useCases.removeBug.execute(actor, bugId));
+  }
 }
